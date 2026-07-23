@@ -1,13 +1,58 @@
-__pycache__
-dist
-build
-Drivers
-Eel.egg-info
-Glue.egg-info
-*.egg-info
-.tmp
-.DS_Store
-*.pyc
-*.swp
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+*.egg
+pip-wheel-metadata/
+
+# Virtual envs
 venv/
-.tox
+.venv/
+env/
+.env/
+
+# Packaging / installers
+dist/
+build/
+*.manifest
+*.spec
+
+# Typecheck / test / coverage
+.mypy_cache/
+.pytest_cache/
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+.cache/
+nosetests.xml
+coverage.xml
+*.cover
+
+# --- Node (CRA example, etc.) ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*~
+.idea/
+*.code-workspace
+
+# --- Local / legacy ---
+.tmp/
+Drivers/
+Eel.egg-info/
+Glue.egg-info/
+
+# Local working docs (not for remote)
+todo/

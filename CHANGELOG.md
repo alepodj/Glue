@@ -1,5 +1,9 @@
 # Change log
 
+### 0.3.0
+
+* Start the webserver before opening the browser and wait until the port accepts connections (fixes early load / race crashes that previously required a post-install Eel patch).
+
 ### 0.2.0
 
 * Default browser mode is now `'auto'`: Edge then Chrome on Windows; Chrome/Chromium elsewhere (always app mode by default).

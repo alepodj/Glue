@@ -319,9 +319,6 @@ def start(
             'got a {}'.format(type(_start_args['shutdown_delay']))
         )
 
-    # Launch the browser to the starting URLs
-    show(*start_urls)
-
     def run_lambda() -> None:
         if _start_args['all_interfaces'] is True:
             HOST = '0.0.0.0'
@@ -344,11 +341,33 @@ def start(
             quiet=True,
             app=app)  # Always returns None
 
-    # Start the webserver
+    def _wait_for_server() -> None:
+        """Wait until the server is accepting connections, then open the browser."""
+        host = _start_args['host'] if not _start_args['all_interfaces'] else '127.0.0.1'
+        if not isinstance(host, str):
+            host = '127.0.0.1'
+        # Bottle on 0.0.0.0 is reached via loopback for the readiness probe
+        if host in ('0.0.0.0', '::'):
+            host = '127.0.0.1'
+        port = _start_args['port']
+        if not isinstance(port, int):
+            raise TypeError("'port' start_arg/option must be of type int")
+        for _ in range(100):
+            try:
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.settimeout(0.2)
+                sock.connect((host, port))
+                sock.close()
+                break
+            except OSError:
+                gvt.sleep(0.05)
+        show(*start_urls)
+
+    # Start the webserver first, then open browser once listening (avoids race on load)
+    server_greenlet = spawn(run_lambda)
+    _wait_for_server()
     if _start_args['block']:
-        run_lambda()
-    else:
-        spawn(run_lambda)
+        server_greenlet.join()
 
 
 def show(*start_urls: str) -> None:

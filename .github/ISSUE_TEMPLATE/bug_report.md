@@ -7,8 +7,8 @@ assignees: ''
 
 ---
 
-**Eel version**
-Please state the version of Eel you're using.
+**Glue version**
+Please state the version of Glue you're using.
 
 **Describe the bug**
 A clear and concise description of what the bug is.

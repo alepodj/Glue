@@ -4,7 +4,7 @@ import subprocess as sps
 import sys
 from typing import List
 
-from eel.types import OptionsDictT
+from glue.types import OptionsDictT
 
 name: str = 'Edge'
 

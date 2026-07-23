@@ -1,6 +1,6 @@
 ---
 name: Help me
-about: Get help with Eel
+about: Get help with Glue
 title: ''
 labels: help wanted
 assignees: ''
@@ -16,7 +16,7 @@ Here is some code that can be easily used to reproduce the problem or understand
 - [ ] I know that if I don't provide sample code that allows someone to quickly step into my shoes, I may not get the help I want or my issue may be closed.
 
 ```python
-import eel
+import glue
 
 ...
 ```

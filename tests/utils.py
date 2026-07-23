@@ -38,22 +38,22 @@ def get_process_listening_port(proc):
 
 
 @contextlib.contextmanager
-def get_eel_server(example_py, start_html):
-    """Run an Eel example with the mode/port overridden so that no browser is launched and a random port is assigned"""
+def get_glue_server(example_py, start_html):
+    """Run a Glue example with the mode/port overridden so that no browser is launched and a random port is assigned"""
     test = None
 
     try:
         with tempfile.NamedTemporaryFile(mode='w', dir=os.path.dirname(example_py), delete=False) as test:
             # We want to run the examples unmodified to keep the test as realistic as possible, but all of the examples
-            # want to launch browsers, which won't be supported in CI. The below script will configure eel to open on
+            # want to launch browsers, which won't be supported in CI. The below script will configure glue to open on
             # a random port and not open a browser, before importing the Python example file - which will then
-            # do the rest of the set up and start the eel server. This is definitely hacky, and means we can't
+            # do the rest of the set up and start the glue server. This is definitely hacky, and means we can't
             # test mode/port settings for examples ... but this is OK for now.
             test.write(f"""
-import eel
+import glue
 
-eel._start_args['mode'] = None
-eel._start_args['port'] = 0
+glue._start_args['mode'] = None
+glue._start_args['port'] = 0
 
 import {os.path.splitext(os.path.basename(example_py))[0]}
 """)

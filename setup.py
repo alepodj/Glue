@@ -5,14 +5,13 @@ with open('README.md') as read_me:
     long_description = read_me.read()
 
 setup(
-    name='Eel',
-    version='0.18.2',
-    author='Python Eel Organisation',
-    author_email='python-eel@protonmail.com',
-    url='https://github.com/python-eel/Eel',
-    packages=['eel'],
+    name='Glue',
+    version='0.1.0',
+    author='alepodj',
+    url='https://github.com/alepodj/Glue',
+    packages=['glue'],
     package_data={
-        'eel': ['eel.js', 'py.typed'],
+        'glue': ['glue.js', 'py.typed'],
     },
     install_requires=['bottle', 'bottle-websocket', 'future', 'pyparsing', 'typing_extensions', 'importlib_resources'],
     extras_require={
@@ -32,6 +31,10 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
         'Programming Language :: Python :: Implementation :: CPython',
         'License :: OSI Approved :: MIT License',
     ],

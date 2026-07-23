@@ -3,6 +3,8 @@ dist
 build
 Drivers
 Eel.egg-info
+Glue.egg-info
+*.egg-info
 .tmp
 .DS_Store
 *.pyc

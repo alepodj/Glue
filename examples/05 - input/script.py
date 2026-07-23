@@ -1,11 +1,11 @@
-import eel
+import glue
 
-eel.init('web')                     # Give folder containing web files
+glue.init('web')                     # Give folder containing web files
 
-@eel.expose                         # Expose this function to Javascript
+@glue.expose                         # Expose this function to Javascript
 def handleinput(x):
     print('%s' % x)
 
-eel.say_hello_js('connected!')   # Call a Javascript function
+glue.say_hello_js('connected!')   # Call a Javascript function
 
-eel.start('main.html', size=(500, 200))    # Start
+glue.start('main.html', size=(500, 200))    # Start

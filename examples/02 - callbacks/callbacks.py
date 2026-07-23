@@ -1,13 +1,13 @@
-import eel
+import glue
 import random
 
-eel.init('web')
+glue.init('web')
 
-@eel.expose
+@glue.expose
 def py_random():
     return random.random()
 
-@eel.expose
+@glue.expose
 def py_exception(error):
     if error:
         raise ValueError("Test")
@@ -24,14 +24,14 @@ def print_num_failed(error, stack):
     print("\tStack: ", stack)
 
 # Call Javascript function, and pass explicit callback function    
-eel.js_random()(print_num)
+glue.js_random()(print_num)
 
 # Do the same with an inline callback
-eel.js_random()(lambda n: print('Got this from Javascript:', n))
+glue.js_random()(lambda n: print('Got this from Javascript:', n))
 
 # Show error handling
-eel.js_with_error()(print_num, print_num_failed)
+glue.js_with_error()(print_num, print_num_failed)
 
 
-eel.start('callbacks.html', size=(400, 300))
+glue.start('callbacks.html', size=(400, 300))
 

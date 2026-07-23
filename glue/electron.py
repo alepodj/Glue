@@ -5,7 +5,7 @@ import subprocess as sps
 from shutil import which
 from typing import List, Optional
 
-from eel.types import OptionsDictT
+from glue.types import OptionsDictT
 
 name: str = 'Electron'
 

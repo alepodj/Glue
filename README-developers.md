@@ -1,16 +1,16 @@
-# Eel Developers
+# Glue Developers
 
 ## Setting up your environment
 
-In order to start developing with Eel you'll need to checkout the code, set up a development and testing environment, and check that everything is in order.
+In order to start developing with Glue you'll need to checkout the code, set up a development and testing environment, and check that everything is in order.
 
 ### Clone the repository
 ```bash
-git clone git@github.com:python-eel/Eel.git
+git clone git@github.com:alepodj/Glue.git
 ```
 
 ### (Recommended) Create a virtual environment
-It's recommended that you use virtual environments for this project. Your process for setting up a virutal environment will vary depending on OS and tool of choice, but might look something like this:
+It's recommended that you use virtual environments for this project. Your process for setting up a virtual environment will vary depending on OS and tool of choice, but might look something like this:
 
 ```bash
 python3 -m venv venv
@@ -18,14 +18,14 @@ source venv/bin/activate
 ```
 
 **Note**: `venv` is listed in the `.gitignore` file so it's the recommended virtual environment name
-    
+
 
 ### Install project requirements
 
 ```bash
-pip3 install -r requirements.txt        # eel's 'prod' requirements
+pip3 install -r requirements.txt        # Glue's 'prod' requirements
 pip3 install -r requirements-test.txt   # pytest and selenium
-pip3 install -r requirements-meta.txt   # tox 
+pip3 install -r requirements-meta.txt   # tox
 ```
 
 ### (Recommended) Run Automated Tests
@@ -38,13 +38,13 @@ Our Tox configuration requires [Chrome](https://www.google.com/chrome) and [Chro
 
 #### Running Tests
 
-To test Eel against a specific version of Python you have installed, e.g. Python 3.7 in this case, run:
+To test Glue against a specific version of Python you have installed, e.g. Python 3.7 in this case, run:
 
 ```bash
-tox -e py36
+tox -e py37
 ```
 
-To test Eel against all supported versions, run the following:
+To test Glue against all supported versions, run the following:
 
 ```bash
 tox

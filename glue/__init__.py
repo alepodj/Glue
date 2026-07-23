@@ -4,7 +4,7 @@ import traceback
 from io import open
 from typing import Union, Any, Dict, List, Set, Tuple, Optional, Callable
 from typing_extensions import Literal
-from eel.types import OptionsDictT, WebSocketT
+from glue.types import OptionsDictT, WebSocketT
 import gevent as gvt
 import json as jsn
 import bottle as btl
@@ -14,7 +14,7 @@ except ImportError:
     import bottle.ext.websocket as wbs
 import re as rgx
 import os
-import eel.browsers as brw
+import glue.browsers as brw
 import pyparsing as pp
 import random as rnd
 import sys
@@ -28,9 +28,9 @@ mimetypes.add_type('application/javascript', '.js')
 # https://setuptools.pypa.io/en/latest/pkg_resources.html
 #     Use of pkg_resources is deprecated in favor of importlib.resources
 # Migration guide: https://importlib-resources.readthedocs.io/en/latest/migration.html
-_eel_js_reference = importlib_resources.files('eel') / 'eel.js'
-with importlib_resources.as_file(_eel_js_reference) as _eel_js_path:
-    _eel_js: str = _eel_js_path.read_text(encoding='utf-8')
+_glue_js_reference = importlib_resources.files('glue') / 'glue.js'
+with importlib_resources.as_file(_glue_js_reference) as _glue_js_path:
+    _glue_js: str = _glue_js_path.read_text(encoding='utf-8')
 
 _websockets: List[Tuple[Any, WebSocketT]] = []
 _call_return_values: Dict[Any, Any] = {}
@@ -44,16 +44,16 @@ _shutdown: Optional[gvt.Greenlet] = None    # Later assigned as global by _webso
 root_path: str                              # Later assigned as global by init()
 
 # The maximum time (in milliseconds) that Python will try to retrieve a return value for functions executing in JS
-# Can be overridden through `eel.init` with the kwarg `js_result_timeout` (default: 10000)
+# Can be overridden through `glue.init` with the kwarg `js_result_timeout` (default: 10000)
 _js_result_timeout: int = 10000
 
-# Attribute holding the start args from calls to eel.start()
+# Attribute holding the start args from calls to glue.start()
 _start_args: OptionsDictT = {}
 
 # == Temporary (suppressible) error message to inform users of breaking API change for v1.0.0 ===
 api_error_message: str = '''
 ----------------------------------------------------------------------------------
-  'options' argument deprecated in v1.0.0, see https://github.com/ChrisKnott/Eel
+  'options' argument deprecated in v1.0.0, see https://github.com/alepodj/Glue
   To suppress this error, add 'suppress_error=True' to start() call.
   This option will be removed in future versions
 ----------------------------------------------------------------------------------
@@ -65,7 +65,7 @@ api_error_message: str = '''
 
 
 def expose(name_or_function: Optional[Callable[..., Any]] = None) -> Callable[..., Any]:
-    '''Decorator to expose Python callables via Eel's JavaScript API.
+    '''Decorator to expose Python callables via Glue's JavaScript API.
 
     When an exposed function is called, a callback function can be passed
     immediately afterwards. This callback will be called asynchronously with
@@ -75,8 +75,8 @@ def expose(name_or_function: Optional[Callable[..., Any]] = None) -> Callable[..
     Blocking calls to the exposed function from the JavaScript side are only
     possible using the :code:`await` keyword inside an :code:`async function`.
     These still have to make a call to the response, i.e.
-    :code:`await eel.py_random()();` inside an :code:`async function` will work,
-    but just :code:`await eel.py_random();` will not.
+    :code:`await glue.py_random()();` inside an :code:`async function` will work,
+    but just :code:`await glue.py_random();` will not.
 
     :Example:
 
@@ -92,18 +92,18 @@ def expose(name_or_function: Optional[Callable[..., Any]] = None) -> Callable[..
 
     .. code-block:: javascript
 
-        eel.say_hello_py('Alice')();
+        glue.say_hello_py('Alice')();
 
     Expected output on the Python console::
 
         Alice said hello from the JavaScript world!
 
     '''
-    # Deal with '@eel.expose()' - treat as '@eel.expose'
+    # Deal with '@glue.expose()' - treat as '@glue.expose'
     if name_or_function is None:
         return expose
 
-    if isinstance(name_or_function, str):   # Called as '@eel.expose("my_name")'
+    if isinstance(name_or_function, str):   # Called as '@glue.expose("my_name")'
         name = name_or_function
 
         def decorator(function: Callable[..., Any]) -> Any:
@@ -117,11 +117,11 @@ def expose(name_or_function: Optional[Callable[..., Any]] = None) -> Callable[..
 
 
 # PyParsing grammar for parsing exposed functions in JavaScript code
-# Examples: `eel.expose(w, "func_name")`, `eel.expose(func_name)`, `eel.expose((function (e){}), "func_name")`
+# Examples: `glue.expose(w, "func_name")`, `glue.expose(func_name)`, `glue.expose((function (e){}), "func_name")`
 EXPOSED_JS_FUNCTIONS: pp.ZeroOrMore = pp.ZeroOrMore(
     pp.Suppress(
-        pp.SkipTo(pp.Literal('eel.expose('))
-        + pp.Literal('eel.expose(')
+        pp.SkipTo(pp.Literal('glue.expose('))
+        + pp.Literal('glue.expose(')
         + pp.Optional(
             pp.Or([pp.nestedExpr(), pp.Word(pp.printables, excludeChars=',')]) + pp.Literal(',')
         )
@@ -145,13 +145,13 @@ def init(
     :param path: Sets the path on the filesystem where files to be served to
         the browser are located, e.g. :file:`web`.
     :param allowed_extensions: A list of filename extensions which will be
-        parsed for exposed eel functions which should be callable from python.
+        parsed for exposed glue functions which should be callable from python.
         Files with extensions not in *allowed_extensions* will still be served,
         but any JavaScript functions, even if marked as exposed, will not be
         accessible from python.
         *Default:* :code:`['.js', '.html', '.txt', '.htm', '.xhtml', '.vue']`.
-    :param js_result_timeout: How long Eel should be waiting to register the
-        results from a call to Eel's JavaScript API before before timing out.
+    :param js_result_timeout: How long Glue should be waiting to register the
+        results from a call to Glue's JavaScript API before before timing out.
         *Default:* :code:`10000` milliseconds.
     '''
     global root_path, _js_functions, _js_result_timeout
@@ -170,7 +170,7 @@ def init(
                     matches = EXPOSED_JS_FUNCTIONS.parseString(contents).asList()
                     for expose_call in matches:
                         # Verify that function name is valid
-                        msg = "eel.expose() call contains '(' or '='"
+                        msg = "glue.expose() call contains '(' or '='"
                         assert rgx.findall(r'[\(=]', expose_call) == [], msg
                         expose_calls.add(expose_call)
                     js_functions.update(expose_calls)
@@ -203,7 +203,7 @@ def start(
         app: btl.Bottle = btl.default_app(),
         shutdown_delay: float = 1.0,
         suppress_error: bool = False) -> None:
-    '''Start the Eel app.
+    '''Start the Glue app.
 
     Suppose you put all the frontend files in a directory called
     :file:`web`, including your start page :file:`main.html`, then the app
@@ -211,9 +211,9 @@ def start(
 
     .. code-block:: python
 
-        import eel
-        eel.init('web')
-        eel.start('main.html')
+        import glue
+        glue.init('web')
+        glue.start('main.html')
 
     This will start a webserver on the default settings
     (http://localhost:8000) and open a browser to
@@ -236,7 +236,7 @@ def start(
         :file:`my_templates`. *Default:* `None`.
     :param cmdline_args: A list of strings to pass to the command starting the
         browser. For example, we might add extra flags to Chrome with
-        :code:`eel.start('main.html', mode='chrome-app', port=8080,
+        :code:`glue.start('main.html', mode='chrome-app', port=8080,
         cmdline_args=['--start-fullscreen', '--browser-startup-dialog'])`.
         *Default:* :code:`[]`.
     :param size: Tuple specifying the (width, height) of the main window in
@@ -263,14 +263,14 @@ def start(
     :param default_path: The default file to retrieve for the root URL.
     :param app: An instance of :class:`bottle.Bottle` which will be used rather
         than creating a fresh one. This can be used to install middleware on
-        the instance before starting Eel, e.g. for session management,
+        the instance before starting Glue, e.g. for session management,
         authentication, etc. If *app* is not a :class:`bottle.Bottle` instance,
-        you will need to call :code:`eel.register_eel_routes(app)` on your
+        you will need to call :code:`glue.register_glue_routes(app)` on your
         custom app instance.
-    :param shutdown_delay: Timer configurable for Eel's shutdown detection
+    :param shutdown_delay: Timer configurable for Glue's shutdown detection
         mechanism, whereby when any websocket closes, it waits *shutdown_delay*
         seconds, and then checks if there are now any websocket connections.
-        If not, then Eel closes. In case the user has closed the browser and
+        If not, then Glue closes. In case the user has closed the browser and
         wants to exit the program. *Default:* :code:`1.0` seconds.
     :param suppress_error: Temporary (suppressible) error message to inform
         users of breaking API change for v1.0.0. Set to `True` to suppress
@@ -333,9 +333,9 @@ def start(
         app = _start_args['app']
 
         if isinstance(app, btl.Bottle):
-            register_eel_routes(app)
+            register_glue_routes(app)
         else:
-            register_eel_routes(btl.default_app())
+            register_glue_routes(btl.default_app())
 
         btl.run(
             host=HOST,
@@ -355,9 +355,9 @@ def show(*start_urls: str) -> None:
     '''Show the specified URL(s) in the browser.
 
     Suppose you have two files in your :file:`web` folder. The file
-    :file:`hello.html` regularly includes :file:`eel.js` and provides
+    :file:`hello.html` regularly includes :file:`glue.js` and provides
     interactivity, and the file :file:`goodbye.html` does not include
-    :file:`eel.js` and simply provides plain HTML content not reliant on Eel.
+    :file:`glue.js` and simply provides plain HTML content not reliant on Eel.
 
     First, we defien a callback function to be called when the browser
     window is closed:
@@ -365,20 +365,20 @@ def show(*start_urls: str) -> None:
     .. code-block:: python
 
         def last_calls():
-           eel.show('goodbye.html')
+           glue.show('goodbye.html')
 
-    Now we initialise and start Eel, with a :code:`close_callback` to our
+    Now we initialise and start Glue, with a :code:`close_callback` to our
     function:
 
     ..code-block:: python
 
-        eel.init('web')
-        eel.start('hello.html', mode='chrome-app', close_callback=last_calls)
+        glue.init('web')
+        glue.start('hello.html', mode='chrome-app', close_callback=last_calls)
 
     When the websocket from :file:`hello.html` is closed (e.g. because the
-    user closed the browser window), Eel will wait *shutdown_delay* seconds
+    user closed the browser window), Glue will wait *shutdown_delay* seconds
     (by default 1 second), then call our :code:`last_calls()` function, which
-    opens another window with the :file:`goodbye.html` shown before our Eel app
+    opens another window with the :file:`goodbye.html` shown before our Glue app
     terminates.
 
     :param start_urls: One or more URLs to be opened.
@@ -391,8 +391,8 @@ def sleep(seconds: Union[int, float]) -> None:
 
     .. note::
         While this function simply wraps :func:`gevent.sleep()`, it is better
-        to call :func:`eel.sleep()` in your eel app, as this will ensure future
-        compatibility in case the implementation of Eel should change in some
+        to call :func:`glue.sleep()` in your Glue app, as this will ensure future
+        compatibility in case the implementation of Glue should change in some
         respect.
 
     :param seconds: The number of seconds to sleep.
@@ -408,10 +408,10 @@ def spawn(function: Callable[..., Any], *args: Any, **kwargs: Any) -> gvt.Greenl
 
     .. caution::
         If you spawn your own Greenlets to run in addition to those spawned by
-        Eel's internal core functionality, you will have to ensure that those
+        Glue's internal core functionality, you will have to ensure that those
         Greenlets will terminate as appropriate (either by returning or by
         being killed via Gevent's kill mechanism), otherwise your app may not
-        terminate correctly when Eel itself terminates.
+        terminate correctly when Glue itself terminates.
 
     :param function: The function to be called and run as the Greenlet.
     :param *args: Any positional arguments that should be passed to *function*.
@@ -424,12 +424,12 @@ def spawn(function: Callable[..., Any], *args: Any, **kwargs: Any) -> gvt.Greenl
 # Bottle Routes
 
 
-def _eel() -> str:
+def _glue() -> str:
     start_geometry = {'default': {'size': _start_args['size'],
                                   'position': _start_args['position']},
                       'pages':   _start_args['geometry']}
 
-    page = _eel_js.replace('/** _py_functions **/',
+    page = _glue_js.replace('/** _py_functions **/',
                            '_py_functions: %s,' % list(_exposed_functions.keys()))
     page = page.replace('/** _start_geometry **/',
                         '_start_geometry: %s,' % _safe_json(start_geometry))
@@ -489,30 +489,30 @@ def _websocket(ws: WebSocketT) -> None:
 
 
 BOTTLE_ROUTES: Dict[str, Tuple[Callable[..., Any], Dict[Any, Any]]] = {
-    "/eel.js": (_eel, dict()),
+    "/glue.js": (_glue, dict()),
     "/": (_root, dict()),
     "/<path:path>": (_static, dict()),
-    "/eel": (_websocket, dict(apply=[wbs.websocket]))
+    "/glue": (_websocket, dict(apply=[wbs.websocket]))
 }
 
 
-def register_eel_routes(app: btl.Bottle) -> None:
-    '''Register the required eel routes with `app`.
+def register_glue_routes(app: btl.Bottle) -> None:
+    '''Register the required Glue routes with `app`.
 
     .. note::
 
-        :func:`eel.register_eel_routes()` is normally invoked implicitly by
-        :func:`eel.start()` and does not need to be called explicitly in most
-        cases. Registering the eel routes explicitly is only needed if you are
+        :func:`glue.register_glue_routes()` is normally invoked implicitly by
+        :func:`glue.start()` and does not need to be called explicitly in most
+        cases. Registering the Glue routes explicitly is only needed if you are
         passing something other than an instance of :class:`bottle.Bottle` to
-        :func:`eel.start()`.
+        :func:`glue.start()`.
 
     :Example:
 
         >>> app = bottle.Bottle()
-        >>> eel.register_eel_routes(app)
+        >>> glue.register_glue_routes(app)
         >>> middleware = beaker.middleware.SessionMiddleware(app)
-        >>> eel.start(app=middleware)
+        >>> glue.start(app=middleware)
 
     '''
     for route_path, route_params in BOTTLE_ROUTES.items():

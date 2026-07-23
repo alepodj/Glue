@@ -4,13 +4,13 @@ import webbrowser as wbr
 from typing import Union, List, Dict, Iterable, Optional
 from types import ModuleType
 
-from eel.types import OptionsDictT
-import eel.chrome as chm
-import eel.electron as ele
-import eel.edge as edge
-import eel.msIE as ie
-#import eel.firefox as ffx      TODO
-#import eel.safari as saf       TODO
+from glue.types import OptionsDictT
+import glue.chrome as chm
+import glue.electron as ele
+import glue.edge as edge
+import glue.msIE as ie
+#import glue.firefox as ffx      TODO
+#import glue.safari as saf       TODO
 
 _browser_paths: Dict[str, str] = {}
 _browser_modules: Dict[str, ModuleType] = {'chrome':   chm,

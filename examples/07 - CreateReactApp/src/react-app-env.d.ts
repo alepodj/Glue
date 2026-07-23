@@ -1,7 +1,7 @@
 /// <reference types="react-scripts" />
 
 interface Window {
-  eel: any;
+  glue: any;
 }
 
 declare var window: Window;

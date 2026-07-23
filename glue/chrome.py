@@ -4,7 +4,7 @@ import os
 import subprocess as sps
 from shutil import which
 from typing import List, Optional
-from eel.types import OptionsDictT
+from glue.types import OptionsDictT
 
 # Every browser specific module must define run(), find_path() and name like this
 

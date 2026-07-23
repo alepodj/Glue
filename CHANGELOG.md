@@ -1,5 +1,12 @@
 # Change log
 
+### 0.1.0
+
+* Rebrand fork as **Glue** (`import glue`, `/glue.js`, `/glue` WebSocket).
+* Courtesy attribution to upstream [Eel](https://github.com/python-eel/Eel).
+* Package metadata points at https://github.com/alepodj/Glue
+
+
 ### 0.18.2
 
 * Switch from using `pkg_resources` to `importlib.resources`: https://github.com/python-eel/Eel/pull/766
@@ -23,7 +30,7 @@
 * Comprehensive type hints implement by @thatfloflo in https://github.com/python-eel/Eel/pull/577.
 
 ### v0.15.2
-* Adds `register_eel_routes` to handle applying Eel routes to non-Bottle custom app instances.
+* Adds `register_glue_routes` to handle applying Eel routes to non-Bottle custom app instances.
 
 ### v0.15.1
 * Bump bottle dependency from 0.12.13 to 0.12.20 to address the critical CVE-2022-31799 and moderate CVE-2020-28473.
@@ -42,7 +49,7 @@
 
 ## v0.13.0
 * Drop support for Python versions below 3.6
-* Add `jinja2` as an extra for pip installation, e.g. `pip install eel[jinja2]`.
+* Add `jinja2` as an extra for pip installation, e.g. `pip install glue[jinja2]`.
 * Bump dependencies in examples to dismiss github security notices. We probably want to set up a policy to ignore example dependencies as they shouldn't be considered a source of vulnerabilities.
 * Disable edge on non-Windows platforms until we implement proper support.
 
@@ -66,10 +73,10 @@
 * Fix the implementation of #203, allowing users to pass their own bottle instances into Eel.
 
 ## v0.11.0
-* Added support for `app` parameter to `eel.start`, which will override the bottle app instance used to run eel. This
+* Added support for `app` parameter to `glue.start`, which will override the bottle app instance used to run eel. This
 allows developers to apply any middleware they wish to before handing over to eel.
-* Disable page caching by default via new `disable_cache` parameter to `eel.start`.
-* Add support for listening on all network interfaces via new `all_interfaces` parameter to `eel.start`.
+* Disable page caching by default via new `disable_cache` parameter to `glue.start`.
+* Add support for listening on all network interfaces via new `all_interfaces` parameter to `glue.start`.
 * Support for Microsoft Edge
 
 ### v0.10.4
@@ -86,7 +93,7 @@ allows developers to apply any middleware they wish to before handing over to ee
 
 ## v0.10.0
 * Corrective version bump after new feature included in 0.9.13
-* Fix a bug with example 06 for Jinja templating; the `templates` kwarg to `eel.start` takes a filepath, not a bool.
+* Fix a bug with example 06 for Jinja templating; the `templates` kwarg to `glue.start` takes a filepath, not a bool.
 
 ### v0.9.13
 * Add support for Jinja templating.

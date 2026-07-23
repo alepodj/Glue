@@ -1,7 +1,6 @@
 """Main Python application file for the Glue CRA demo."""
 
 import os
-import platform
 import random
 import sys
 
@@ -42,12 +41,13 @@ def start_glue(develop):
 
     if develop:
         directory = 'src'
-        app = None
         page = {'port': 3000}
+        # Dev: no browser window — CRA already opened localhost:3000
+        mode = None
     else:
         directory = 'build'
-        app = 'chrome-app'
         page = 'index.html'
+        mode = 'auto'
 
     glue.init(directory, ['.tsx', '.ts', '.jsx', '.js', '.html'])
 
@@ -57,23 +57,15 @@ def start_glue(develop):
 
     glue.show_log('https://github.com/samuelhwilliams/Eel/issues/363 (show_log)')
 
-    glue_kwargs = dict(
+    glue.start(
+        page,
+        mode=mode,
         host='localhost',
         port=8080,
         size=(1280, 800),
     )
-    try:
-        glue.start(page, mode=app, **glue_kwargs)
-    except EnvironmentError:
-        # If Chrome isn't found, fallback to Microsoft Edge on Win10 or greater
-        if sys.platform in ['win32', 'win64'] and int(platform.release()) >= 10:
-            glue.start(page, mode='edge', **glue_kwargs)
-        else:
-            raise
 
 
 if __name__ == '__main__':
-    import sys
-
     # Pass any second argument to enable debugging
     start_glue(develop=len(sys.argv) == 2)

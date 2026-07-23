@@ -2,7 +2,7 @@
 
 ## Extra Installation Instructions
 
-As discussed in the [main README](https://github.com/alepodj/Glue), the CreateReactApp (CRA) JavaScript framework can work with Glue. This particular project was bootstrapped with `npx create-react-app 07_CreateReactApp --typescript` (Typescript enabled), but the below modifications can be implemented in any CRA configuration or CRA version.
+As discussed in the [main README](https://github.com/alepodj/Glue), the CreateReactApp (CRA) JavaScript framework can work with Glue. This particular project was bootstrapped with `npx create-react-app 08_CreateReactApp --typescript` (Typescript enabled), but the below modifications can be implemented in any CRA configuration or CRA version.
 
 If you run into any issues with this example, open a [new issue](https://github.com/alepodj/Glue/issues/new).
 

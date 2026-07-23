@@ -6,7 +6,7 @@ with open('README.md') as read_me:
 
 setup(
     name='Glue',
-    version='0.1.0',
+    version='0.2.0',
     author='alepodj',
     url='https://github.com/alepodj/Glue',
     packages=['glue'],
@@ -21,7 +21,7 @@ setup(
     description='For little HTML GUI applications, with easy Python/JS interop',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    keywords=['gui', 'html', 'javascript', 'electron'],
+    keywords=['gui', 'html', 'javascript', 'desktop', 'chrome', 'edge'],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Natural Language :: English',

@@ -6,7 +6,7 @@ Glue is a little Python library for making simple Electron-like offline HTML/JS 
 
 <sub>Glue is a fork of [Eel](https://github.com/python-eel/Eel) by Chris Knott and contributors.</sub>
 
-Glue is designed to take the hassle out of writing short and simple GUI applications. If you are familiar with Python and web development, probably just jump to [this example](https://github.com/alepodj/Glue/tree/main/examples/04%20-%20file_access) which picks random file names out of the given folder (something that is impossible from a browser).
+Glue is designed to take the hassle out of writing short and simple GUI applications. If you are familiar with Python and web development, probably just jump to [this example](https://github.com/alepodj/Glue/tree/main/examples/05%20-%20file_access) which picks random file names out of the given folder (something that is impossible from a browser).
 
 <p align="center"><img src="https://raw.githubusercontent.com/samuelhwilliams/Eel/master/examples/04%20-%20file_access/Screenshot.png" ></p>
 
@@ -27,7 +27,7 @@ Glue is designed to take the hassle out of writing short and simple GUI applicat
       - [Synchronous returns](#synchronous-returns)
   - [Asynchronous Python](#asynchronous-python)
   - [Building distributable binary with PyInstaller](#building-distributable-binary-with-pyinstaller)
-  - [Microsoft Edge](#microsoft-edge)
+  - [Browsers](#browsers)
 
 <!-- /TOC -->
 
@@ -92,16 +92,16 @@ glue.start('main.html')
 
 This will start a webserver on the default settings (http://localhost:8000) and open a browser to http://localhost:8000/main.html.
 
-If Chrome or Chromium is installed then by default it will open in that in App Mode (with the `--app` cmdline flag), regardless of what the OS's default browser is set to (it is possible to override this behaviour).
+By default (`mode='auto'`), Glue opens a Chromium-based browser in **App Mode** (`--app`): **Microsoft Edge** on Windows when available, otherwise **Google Chrome/Chromium**. On macOS/Linux it uses Chrome/Chromium. App mode is on by default (`app_mode=True`) so the window feels like a small desktop app rather than a normal browser tab.
 
 ### App options
 
 Additional options can be passed to `glue.start()` as keyword arguments.
 
-Some of the options include the mode the app is in (e.g. 'chrome'), the port the app runs on, the host name of the app, and adding additional command line flags.
+Some of the options include the mode the app is in (e.g. `'auto'`), the port the app runs on, the host name of the app, and adding additional command line flags.
 
 The following options are available to `start()`:
- - **mode**, a string specifying what browser to use (e.g. `'chrome'`, `'electron'`, `'edge'`,`'msie'`, `'custom'`). Can also be `None` or `False` to not open a window. *Default: `'chrome'`*
+ - **mode**, browser selection: `'auto'` (default; Edge→Chrome on Windows, Chrome/Chromium elsewhere), `'chrome'`, `'edge'`, `'custom'`, or `None`/`False` for no window.
  - **host**, a string specifying what hostname to use for the Bottle server. *Default: `'localhost'`)*
  - **port**, an int specifying what port to use for the Bottle server. Use `0` for port to be picked automatically. *Default: `8000`*.
  - **block**, a bool saying whether or not the call to `start()` should block the calling thread. *Default: `True`*
@@ -111,6 +111,7 @@ The following options are available to `start()`:
  - **position**, a tuple of ints specifying the (left, top) of the main window in pixels *Default: `None`*
  - **geometry**, a dictionary specifying the size and position for all windows. The keys should be the relative path of the page, and the values should be a dictionary of the form `{'size': (200, 100), 'position': (300, 50)}`. *Default: {}*
  - **close_callback**, a lambda or function that is called when a websocket to a window closes (i.e. when the user closes the window). It should take two arguments; a string which is the relative path of the page that just closed, and a list of other websockets that are still open. *Default: `None`*
+ - **app_mode**, whether to run Edge/Chrome with `--app` (desktop-like window). *Default: `True`*
  - **app**, an instance of Bottle which will be used rather than creating a fresh one. This can be used to install middleware on the instance before starting Glue, e.g. for session management, authentication, etc. If your `app` is not a Bottle instance, you will need to call `glue.register_glue_routes(app)` on your custom app instance.
  - **shutdown_delay**, timer configurable for Glue's shutdown detection mechanism, whereby when any websocket closes, it waits `shutdown_delay` seconds, and then checks if there are now any websocket connections. If not, then Glue closes. In case the user has closed the browser and wants to exit the program. By default, the value of **shutdown_delay** is `1.0` second
 
@@ -343,9 +344,15 @@ If you want to package your app into a program that can be run on a computer wit
 
 Consult the [documentation for PyInstaller](http://PyInstaller.readthedocs.io/en/stable/) for more options.
 
-## Microsoft Edge
+## Browsers
 
-For Windows 10 users, Microsoft Edge (`glue.start(.., mode='edge')`) is installed by default and a useful fallback if a preferred browser is not installed. See the examples:
+Glue only launches **Edge** and **Chrome/Chromium**, always preferring **app mode** (`app_mode=True`) for a simple desktop-like window.
 
-- A Hello World example using Microsoft Edge: [examples/01 - hello_world-Edge/](https://github.com/alepodj/Glue/tree/main/examples/01%20-%20hello_world-Edge)
-- Example implementing browser-fallbacks: [examples/07 - CreateReactApp/glue_CRA.py](https://github.com/alepodj/Glue/tree/main/examples/07%20-%20CreateReactApp/glue_CRA.py)
+- **Default (`mode='auto'`):** Windows tries Edge, then Chrome; macOS/Linux use Chrome/Chromium.
+- **Force a browser:** `glue.start(..., mode='edge')` or `mode='chrome'`.
+- **No window:** `mode=None` or `False` (useful for tests / attaching your own frontend).
+- **Custom command:** `mode='custom'` with `cmdline_args=[...]`.
+
+Try [`examples/01 - hello_world`](examples/01%20-%20hello_world) for the default auto launcher, and [`examples/02 - hello_world_chrome`](examples/02%20-%20hello_world_chrome) to force Chrome.
+
+Electron and other browsers are not supported — keep Glue focused on the simplest Chromium app-mode path.

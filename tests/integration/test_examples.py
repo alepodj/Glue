@@ -20,8 +20,18 @@ def test_01_hello_world(driver):
         assert "Hello from Python World!" in console_logs[1]['message']
 
 
-def test_02_callbacks(driver):
-    with get_glue_server('examples/02 - callbacks/callbacks.py', 'callbacks.html') as glue_url:
+def test_02_hello_world_chrome(driver):
+    with get_glue_server('examples/02 - hello_world_chrome/hello.py', 'hello.html') as glue_url:
+        driver.get(glue_url)
+        assert driver.title == "Hello, World! (Chrome)"
+
+        console_logs = get_console_logs(driver, minimum_logs=2)
+        assert "Hello from Javascript World!" in console_logs[0]['message']
+        assert "Hello from Python World!" in console_logs[1]['message']
+
+
+def test_03_callbacks(driver):
+    with get_glue_server('examples/03 - callbacks/callbacks.py', 'callbacks.html') as glue_url:
         driver.get(glue_url)
         assert driver.title == "Callbacks Demo"
 
@@ -30,8 +40,8 @@ def test_02_callbacks(driver):
         assert "callbacks.html" in console_logs[0]['message']
 
 
-def test_03_callbacks(driver):
-    with get_glue_server('examples/03 - sync_callbacks/sync_callbacks.py', 'sync_callbacks.html') as glue_url:
+def test_04_sync_callbacks(driver):
+    with get_glue_server('examples/04 - sync_callbacks/sync_callbacks.py', 'sync_callbacks.html') as glue_url:
         driver.get(glue_url)
         assert driver.title == "Synchronous callbacks"
 
@@ -40,8 +50,8 @@ def test_03_callbacks(driver):
         assert "callbacks.html" in console_logs[0]['message']
 
 
-def test_04_file_access(driver: webdriver.Remote):
-    with get_glue_server('examples/04 - file_access/file_access.py', 'file_access.html') as glue_url:
+def test_05_file_access(driver: webdriver.Remote):
+    with get_glue_server('examples/05 - file_access/file_access.py', 'file_access.html') as glue_url:
         driver.get(glue_url)
         assert driver.title == "Glue Demo"
 
@@ -54,8 +64,8 @@ def test_04_file_access(driver: webdriver.Remote):
             assert driver.find_element(value='file-name').text == os.path.basename(temp_file.name)
 
 
-def test_06_jinja_templates(driver: webdriver.Remote):
-    with get_glue_server('examples/06 - jinja_templates/hello.py', 'templates/hello.html') as glue_url:
+def test_07_jinja_templates(driver: webdriver.Remote):
+    with get_glue_server('examples/07 - jinja_templates/hello.py', 'templates/hello.html') as glue_url:
         driver.get(glue_url)
         assert driver.title == "Hello, World!"
 

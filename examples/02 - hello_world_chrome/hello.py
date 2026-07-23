@@ -1,4 +1,5 @@
 import glue
+
 # Set web files folder
 glue.init('web')
 
@@ -9,5 +10,5 @@ def say_hello_py(x):
 say_hello_py('Python World!')
 glue.say_hello_js('Python World!')   # Call a Javascript function
 
-glue.start('hello.html',mode='electron')
-#glue.start('hello.html', mode='custom', cmdline_args=['node_modules/electron/dist/electron.exe', '.'])
+# Force Google Chrome/Chromium (app mode still on by default)
+glue.start('hello.html', mode='chrome', size=(300, 200))

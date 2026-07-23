@@ -1,5 +1,12 @@
 # Change log
 
+### 0.2.0
+
+* Default browser mode is now `'auto'`: Edge then Chrome on Windows; Chrome/Chromium elsewhere (always app mode by default).
+* Dropped Electron, MSIE, and system-default `webbrowser` fallback. Supported modes: `auto`, `chrome`, `edge`, `custom`, `None`/`False`.
+* Hardened Edge launcher to resolve `msedge.exe` and launch without `shell=True`.
+* Removed Electron and Edge-only example folders (default auto covers Windows Edge).
+
 ### 0.1.0
 
 * Rebrand fork as **Glue** (`import glue`, `/glue.js`, `/glue` WebSocket).

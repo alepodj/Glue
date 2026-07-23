@@ -186,7 +186,7 @@ def init(
 
 def start(
         *start_urls: str,
-        mode: Optional[Union[str, Literal[False]]] = 'chrome',
+        mode: Optional[Union[str, Literal[False]]] = 'auto',
         host: str = 'localhost',
         port: int = 8000,
         block: bool = True,
@@ -219,13 +219,14 @@ def start(
     (http://localhost:8000) and open a browser to
     http://localhost:8000/main.html.
 
-    If Chrome or Chromium is installed then by default it will open that in
-    *App Mode* (with the `--app` cmdline flag), regardless of what the OS's
-    default browser is set to (it is possible to override this behaviour).
+    By default (:code:`mode='auto'`), Glue opens a Chromium-based browser in
+    *App Mode* (:code:`--app`): Microsoft Edge on Windows when available,
+    otherwise Google Chrome/Chromium. On macOS/Linux, Chrome/Chromium is used.
 
-    :param mode: What browser is used, e.g. :code:`'chrome'`,
-        :code:`'electron'`, :code:`'edge'`, :code:`'custom'`. Can also be
-        `None` or `False` to not open a window. *Default:* :code:`'chrome'`.
+    :param mode: Browser selection. :code:`'auto'` (default) picks Edge then
+        Chrome on Windows, or Chrome/Chromium elsewhere. Force
+        :code:`'chrome'` or :code:`'edge'`, use :code:`'custom'` with
+        :code:`cmdline_args`, or :code:`None` / :code:`False` for no window.
     :param host: Hostname used for Bottle server. *Default:*
         :code:`'localhost'`.
     :param port: Port used for Bottle server. Use :code:`0` for port to be
@@ -236,9 +237,9 @@ def start(
         :file:`my_templates`. *Default:* `None`.
     :param cmdline_args: A list of strings to pass to the command starting the
         browser. For example, we might add extra flags to Chrome with
-        :code:`glue.start('main.html', mode='chrome-app', port=8080,
+        :code:`glue.start('main.html', mode='chrome', port=8080,
         cmdline_args=['--start-fullscreen', '--browser-startup-dialog'])`.
-        *Default:* :code:`[]`.
+        *Default:* :code:`['--disable-http-cache']`.
     :param size: Tuple specifying the (width, height) of the main window in
         pixels. *Default:* `None`.
     :param position: Tuple specifying the (left, top) position of the main
@@ -253,9 +254,8 @@ def start(
         two arguments: a string which is the relative path of the page that
         just closed, and a list of the other websockets that are still open.
         *Default:* `None`.
-    :param app_mode: Whether to run Chrome/Edge in App Mode. You can also
-        specify *mode* as :code:`mode='chrome-app'` as a shorthand to start
-        Chrome in App Mode.
+    :param app_mode: Whether to run Edge/Chrome in App Mode (:code:`--app`).
+        *Default:* :code:`True`.
     :param all_interfaces: Whether to allow the :mod:`bottle` server to listen
         for connections on all interfaces.
     :param disable_cache: Sets the no-store response header when serving
@@ -373,7 +373,7 @@ def show(*start_urls: str) -> None:
     ..code-block:: python
 
         glue.init('web')
-        glue.start('hello.html', mode='chrome-app', close_callback=last_calls)
+        glue.start('hello.html', mode='auto', close_callback=last_calls)
 
     When the websocket from :file:`hello.html` is closed (e.g. because the
     user closed the browser window), Glue will wait *shutdown_delay* seconds

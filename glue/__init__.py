@@ -213,11 +213,11 @@ def start(
     http://localhost:8000/main.html.
 
     By default (:code:`mode='auto'`), Glue opens a Chromium-based browser in
-    *App Mode* (:code:`--app`): Microsoft Edge on Windows when available,
-    otherwise Google Chrome/Chromium. On macOS/Linux, Chrome/Chromium is used.
+    *App Mode* (:code:`--app`): Google Chrome/Chromium when available, otherwise
+    Microsoft Edge on Windows only. On macOS/Linux, Chrome/Chromium is required.
 
-    :param mode: Browser selection. :code:`'auto'` (default) picks Edge then
-        Chrome on Windows, or Chrome/Chromium elsewhere. Force
+    :param mode: Browser selection. :code:`'auto'` (default) picks Chrome/
+        Chromium first, then Edge on Windows if Chrome is missing. Force
         :code:`'chrome'` or :code:`'edge'`, use :code:`'custom'` with
         :code:`cmdline_args`, or :code:`None` / :code:`False` for no window.
     :param host: Hostname used for Bottle server. *Default:*

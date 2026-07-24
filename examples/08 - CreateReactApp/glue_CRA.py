@@ -62,7 +62,7 @@ def start_glue(develop):
         mode=mode,
         host='localhost',
         port=8080,
-        size=(1280, 800),
+        size=(1280, 720),
     )
 
 

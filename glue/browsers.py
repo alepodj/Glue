@@ -64,10 +64,10 @@ def _run_browser(browser_name: str, options: OptionsDictT, start_urls: List[str]
 
 
 def _auto_browser_order() -> List[str]:
-    # Prefer Edge on Windows (preinstalled); Chrome/Chromium everywhere else,
-    # and as fallback on Windows when Edge is unavailable.
+    # Prefer Chrome/Chromium everywhere for consistent app-mode behavior.
+    # On Windows only, fall back to Edge if Chrome/Chromium is missing.
     if is_windows():
-        return ['edge', 'chrome']
+        return ['chrome', 'edge']
     return ['chrome']
 
 
@@ -76,10 +76,14 @@ def _open_auto(options: OptionsDictT, start_urls: List[str]) -> None:
     for browser_name in tried:
         if _run_browser(browser_name, options, start_urls):
             return
-    names = ' or '.join(m.name for m in (_browser_modules[n] for n in tried))
+    if is_windows():
+        raise EnvironmentError(
+            "Can't find Google Chrome/Chromium or Microsoft Edge. "
+            "Install Chrome/Chromium (preferred) or Edge."
+        )
     raise EnvironmentError(
-        "Can't find a supported browser (%s). "
-        "Install Microsoft Edge or Google Chrome/Chromium." % names
+        "Can't find Google Chrome/Chromium. "
+        "Install Chrome or Chromium to run Glue apps on this platform."
     )
 
 

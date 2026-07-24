@@ -1,5 +1,14 @@
 # Change log
 
+### 0.3.7
+
+* `mode='auto'` prefers Chrome/Chromium on all platforms; Edge is Windows-only fallback if Chrome is missing. macOS/Linux require Chrome/Chromium (no Edge fallback).
+
+### 0.3.6
+
+* Examples: shared favicon/branding from repo `assets/` via `examples/common.py` (no per-example `favicon.ico` copies); default window size `1280×720`.
+* CRA keeps one favicon under `public/` (static build); window size aligned to `1280×720`.
+
 ### 0.3.5
 
 * Docs: drop upstream Eel hero screenshot; fix default `allowed_extensions` (include `.vue`); renumber file_access example README; label pre-fork CHANGELOG history; refresh README-developers (webdriver_manager, GHA, pytest).

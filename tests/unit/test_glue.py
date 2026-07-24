@@ -56,7 +56,7 @@ def test_build_urls_from_string_and_dict():
 
 def test_auto_browser_order(monkeypatch):
     monkeypatch.setattr(browsers, 'is_windows', lambda: True)
-    assert browsers._auto_browser_order() == ['edge', 'chrome']
+    assert browsers._auto_browser_order() == ['chrome', 'edge']
     monkeypatch.setattr(browsers, 'is_windows', lambda: False)
     assert browsers._auto_browser_order() == ['chrome']
 

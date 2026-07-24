@@ -90,7 +90,7 @@ glue.start('main.html')
 
 This will start a webserver on the default settings (http://localhost:8000) and open a browser to http://localhost:8000/main.html.
 
-By default (`mode='auto'`), Glue opens a Chromium-based browser in **App Mode** (`--app`): **Microsoft Edge** on Windows when available, otherwise **Google Chrome/Chromium**. On macOS/Linux it uses Chrome/Chromium. App mode is on by default (`app_mode=True`) so the window feels like a small desktop app rather than a normal browser tab.
+By default (`mode='auto'`), Glue opens a Chromium-based browser in **App Mode** (`--app`): **Google Chrome/Chromium** when available; on Windows only, **Microsoft Edge** if Chrome/Chromium is missing. On macOS/Linux, Chrome/Chromium is required (no Edge fallback). App mode is on by default (`app_mode=True`) so the window feels like a small desktop app rather than a normal browser tab.
 
 ### App options
 
@@ -99,7 +99,7 @@ Additional options can be passed to `glue.start()` as keyword arguments.
 Some of the options include the mode the app is in (e.g. `'auto'`), the port the app runs on, the host name of the app, and adding additional command line flags.
 
 The following options are available to `start()`:
- - **mode**, browser selection: `'auto'` (default; Edge→Chrome on Windows, Chrome/Chromium elsewhere), `'chrome'`, `'edge'`, `'custom'`, or `None`/`False` for no window.
+ - **mode**, browser selection: `'auto'` (default; Chrome/Chromium first, Edge fallback on Windows only), `'chrome'`, `'edge'`, `'custom'`, or `None`/`False` for no window.
  - **host**, a string specifying what hostname to use for the Bottle server. *Default: `'localhost'`)*
  - **port**, an int specifying what port to use for the Bottle server. Use `0` for port to be picked automatically. *Default: `8000`*.
  - **block**, a bool saying whether or not the call to `start()` should block the calling thread. *Default: `True`*
@@ -346,8 +346,8 @@ Consult the [documentation for PyInstaller](http://PyInstaller.readthedocs.io/en
 
 Glue only launches **Edge** and **Chrome/Chromium**, always preferring **app mode** (`app_mode=True`) for a simple desktop-like window.
 
-- **Default (`mode='auto'`):** Windows tries Edge, then Chrome; macOS/Linux use Chrome/Chromium.
-- **Force a browser:** `glue.start(..., mode='edge')` or `mode='chrome'`.
+- **Default (`mode='auto'`):** Chrome/Chromium first on all platforms; Windows falls back to Edge if Chrome is missing; macOS/Linux fail if Chrome/Chromium is not installed.
+- **Force a browser:** `glue.start(..., mode='chrome')` or `mode='edge'`.
 - **No window:** `mode=None` or `False` (useful for tests / attaching your own frontend).
 - **Custom command:** `mode='custom'` with `cmdline_args=[...]`.
 

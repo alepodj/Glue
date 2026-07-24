@@ -1,5 +1,13 @@
-import glue, os, random
+import os
+import sys
+import random
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+from common import WINDOW_SIZE, use_shared_assets
+
+import glue
+
+use_shared_assets()
 glue.init('web')
 
 @glue.expose
@@ -9,4 +17,4 @@ def pick_file(folder):
     else:
         return 'Not valid folder'
 
-glue.start('file_access.html', size=(320, 120))
+glue.start('file_access.html', size=WINDOW_SIZE)

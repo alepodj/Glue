@@ -1,7 +1,15 @@
+import os
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+from common import WINDOW_SIZE, use_shared_assets
+
 import glue
+
+use_shared_assets()
 
 # Set web files folder and optionally specify which file types to check for glue.expose()
 glue.init('web')
 
 # disable_cache now defaults to True so this isn't strictly necessary. Set it to False to enable caching.
-glue.start('disable_cache.html', size=(300, 200), disable_cache=True)    # Start
+glue.start('disable_cache.html', size=WINDOW_SIZE, disable_cache=True)

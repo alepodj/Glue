@@ -73,6 +73,28 @@ glue = {
         return JSON.stringify(obj, (k, v) => v === undefined ? null : v);
     },
 
+    _error_payload: function(err) {
+        if (err && typeof err === 'object' && (err.errorText !== undefined || err.message !== undefined)) {
+            return {
+                errorText: err.errorText !== undefined ? err.errorText : String(err.message),
+                errorTraceback: err.errorTraceback !== undefined ? err.errorTraceback : (err.stack || '')
+            };
+        }
+        return {
+            errorText: String(err),
+            errorTraceback: (err && err.stack) ? err.stack : ''
+        };
+    },
+
+    _send_return: function(call_id, status, value, error) {
+        glue._websocket.send(glue._toJSON({
+            'return': call_id,
+            'status': status,
+            'value': value,
+            'error': error || {}
+        }));
+    },
+
     _call_return: function(call) {
         return function(callback = null) {
             if(callback != null) {
@@ -130,17 +152,27 @@ glue = {
                 let message = JSON.parse(e.data);
                 if(message.hasOwnProperty('call') ) {
                     // Python making a function call into us
-                    if(message.name in glue._exposed_functions) {
-                        try {
-                            let return_val = glue._exposed_functions[message.name](...message.args);
-                            glue._websocket.send(glue._toJSON({'return': message.call, 'status':'ok', 'value': return_val}));
-                        } catch(err) {
-                            glue._websocket.send(glue._toJSON(
-                                {'return': message.call,
-                                'status':'error',
-                                'error': err.message,
-                                'stack': err.stack}));
-                        }
+                    if(!(message.name in glue._exposed_functions)) {
+                        glue._send_return(
+                            message.call,
+                            'error',
+                            null,
+                            {
+                                errorText: 'Function "' + message.name + '" is not exposed',
+                                errorTraceback: ''
+                            }
+                        );
+                        return;
+                    }
+                    try {
+                        let return_val = glue._exposed_functions[message.name](...message.args);
+                        Promise.resolve(return_val).then(function(value) {
+                            glue._send_return(message.call, 'ok', value, {});
+                        }).catch(function(err) {
+                            glue._send_return(message.call, 'error', null, glue._error_payload(err));
+                        });
+                    } catch(err) {
+                        glue._send_return(message.call, 'error', null, glue._error_payload(err));
                     }
                 } else if(message.hasOwnProperty('return')) {
                     // Python returning a value to us

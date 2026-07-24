@@ -1,5 +1,12 @@
 # Change log
 
+### 0.3.3
+
+* Protocol: unknown JS (and Python) exposed names return an error instead of hanging until timeout.
+* Protocol: unify RPC error shape as `{errorText, errorTraceback}` both directions (legacy string+`stack` still accepted on Python receive).
+* Protocol: await Promises returned from exposed JS functions before sending the result.
+* Protocol: Python→JS calls go to the most recently connected page only (no multi-socket broadcast / return races).
+
 ### 0.3.2
 
 * Fail startup if the webserver never becomes ready (no more silent browser open on a dead port).

@@ -572,9 +572,13 @@ def _repeated_send(ws: WebSocketT, msg: str) -> None:
 
 def _process_message(message: Dict[str, Any], ws: WebSocketT) -> None:
     if 'call' in message:
-        error_info = {}
+        error_info: Dict[str, str] = {}
+        return_val: Any = None
         try:
-            return_val = _exposed_functions[message['name']](*message['args'])
+            name = message['name']
+            if name not in _exposed_functions:
+                raise KeyError('Function %r is not exposed' % (name,))
+            return_val = _exposed_functions[name](*message['args'])
             status = 'ok'
         except Exception as e:
             err_traceback = traceback.format_exc()
@@ -583,10 +587,10 @@ def _process_message(message: Dict[str, Any], ws: WebSocketT) -> None:
             status = 'error'
             error_info['errorText'] = repr(e)
             error_info['errorTraceback'] = err_traceback
-        _repeated_send(ws, _safe_json({ 'return': message['call'],
-                                        'status': status,
-                                        'value': return_val,
-                                        'error': error_info,}))
+        _repeated_send(ws, _safe_json({'return': message['call'],
+                                       'status': status,
+                                       'value': return_val,
+                                       'error': error_info}))
     elif 'return' in message:
         call_id = message['return']
         if call_id in _call_return_callbacks:
@@ -594,9 +598,15 @@ def _process_message(message: Dict[str, Any], ws: WebSocketT) -> None:
             if message['status'] == 'ok':
                 callback(message['value'])
             elif message['status'] == 'error' and error_callback is not None:
-                error_callback(message['error'], message['stack'])
+                err = message.get('error')
+                # Unified wire shape: {'errorText', 'errorTraceback'}; keep legacy string+stack
+                if isinstance(err, dict):
+                    error_callback(err.get('errorText'), err.get('errorTraceback'))
+                else:
+                    error_callback(err, message.get('stack'))
         else:
-            _call_return_values[call_id] = message['value']
+            # Sync waiters: unblock even on error (value may be None)
+            _call_return_values[call_id] = message.get('value')
 
     else:
         print('Invalid message received: ', message)
@@ -643,8 +653,15 @@ def _mock_call(name: str, args: Any) -> Callable[[Optional[Callable[..., Any]], 
 
 
 def _js_call(name: str, args: Any) -> Callable[[Optional[Callable[..., Any]], Optional[Callable[..., Any]]], Any]:
+    """Call a JS function on the most recently connected Glue page.
+
+    Multi-window note: Python→JS calls are sent to the last websocket only
+    (not broadcast), so return values are unambiguous. Open pages that need
+    the call must be that latest connection, or call from that page's JS.
+    """
     call_object = _call_object(name, args)
-    for _, ws in _websockets:
+    if _websockets:
+        _, ws = _websockets[-1]
         _repeated_send(ws, _safe_json(call_object))
     return _call_return(call_object)
 

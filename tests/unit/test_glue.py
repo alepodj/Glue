@@ -42,6 +42,16 @@ def test_init():
     assert callable(glue.js_random)
 
 
+def test_init_default_path_is_ui(tmp_path, monkeypatch):
+    """glue.init() with no path argument serves the default ui/ folder."""
+    ui = tmp_path / 'ui'
+    ui.mkdir()
+    (ui / 'index.html').write_text('<html></html>', encoding='utf-8')
+    monkeypatch.chdir(tmp_path)
+    glue.init()
+    assert glue.root_path == str(ui.resolve())
+
+
 def test_build_urls_from_string_and_dict():
     options = {'host': '127.0.0.1', 'port': 9000}
     urls = browsers._build_urls(

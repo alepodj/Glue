@@ -7,7 +7,7 @@ from common import WINDOW_SIZE
 
 import glue
 
-glue.init('web')
+glue.init()
 
 @glue.expose
 def py_random():

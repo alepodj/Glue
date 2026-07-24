@@ -6,7 +6,7 @@ from common import WINDOW_SIZE
 
 import glue
 
-glue.init('web')                     # Give folder containing web files
+glue.init()                     # Serve the ui/ folder
 
 @glue.expose                         # Expose this function to Javascript
 def handleinput(x):

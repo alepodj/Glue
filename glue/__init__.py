@@ -21,7 +21,7 @@ import importlib_resources
 import socket
 import mimetypes
 
-__version__ = '0.3.9'
+__version__ = '0.4.0'
 
 
 mimetypes.add_type('application/javascript', '.js')
@@ -129,7 +129,7 @@ EXPOSED_JS_FUNCTIONS: pp.ZeroOrMore = pp.ZeroOrMore(
 
 
 def init(
-        path: str,
+        path: str = 'ui',
         allowed_extensions: Optional[List[str]] = None,
         js_result_timeout: int = 10000) -> None:
     '''Initialise Glue.
@@ -139,7 +139,7 @@ def init(
     served.
 
     :param path: Sets the path on the filesystem where files to be served to
-        the browser are located, e.g. :file:`web`.
+        the browser are located. *Default:* :file:`ui`.
     :param allowed_extensions: A list of filename extensions which will be
         parsed for exposed glue functions which should be callable from python.
         Files with extensions not in *allowed_extensions* will still be served,
@@ -201,13 +201,13 @@ def start(
     '''Start the Glue app.
 
     Suppose you put all the frontend files in a directory called
-    :file:`web`, including your start page :file:`main.html`, then the app
+    :file:`ui`, including your start page :file:`main.html`, then the app
     is started like this:
 
     .. code-block:: python
 
         import glue
-        glue.init('web')
+        glue.init()
         glue.start('main.html')
 
     This will start a webserver on the default settings
@@ -390,7 +390,7 @@ def start(
 def show(*start_urls: str) -> None:
     '''Show the specified URL(s) in the browser.
 
-    Suppose you have two files in your :file:`web` folder. The file
+    Suppose you have two files in your :file:`ui` folder. The file
     :file:`hello.html` regularly includes :file:`glue.js` and provides
     interactivity, and the file     :file:`goodbye.html` does not include
     :file:`glue.js` and simply provides plain HTML content not reliant on Glue.
@@ -408,7 +408,7 @@ def show(*start_urls: str) -> None:
 
     ..code-block:: python
 
-        glue.init('web')
+        glue.init()
         glue.start('hello.html', mode='auto', close_callback=last_calls)
 
     When the websocket from :file:`hello.html` is closed (e.g. because the

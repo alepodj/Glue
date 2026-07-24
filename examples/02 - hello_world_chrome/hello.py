@@ -6,8 +6,8 @@ from common import WINDOW_SIZE
 
 import glue
 
-# Set web files folder
-glue.init('web')
+# Serve ui/ (default)
+glue.init()
 
 @glue.expose                         # Expose this function to Javascript
 def say_hello_py(x):

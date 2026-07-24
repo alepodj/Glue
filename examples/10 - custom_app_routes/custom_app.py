@@ -14,7 +14,7 @@ app = bottle.Bottle()
 def custom_route():
     return 'Hello, World!'
 
-glue.init('web')
+glue.init()
 
 # need to manually add glue routes if we are wrapping our Bottle instance with middleware
 # glue.register_glue_routes(app)

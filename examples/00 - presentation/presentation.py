@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 import glue
 
-glue.init('web')
+glue.init()
 
 PRESENTATION_SIZE = (1920, 1080)
 

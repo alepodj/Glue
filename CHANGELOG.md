@@ -1,10 +1,17 @@
 # Change log
 
+### 0.4.0
+
+* **Breaking:** Default frontend folder is `ui/` (was the `web/` convention). `glue.init()` now defaults to `path='ui'`; pass another path to override (e.g. CRA `build` / `src`).
+* **Breaking:** `python -m glue` packaging CLI argument renamed from `web_folder` to `ui_folder`.
+* Rename example frontend folders from `web/` to `ui/` and update docs/examples accordingly.
+
 ### 0.3.9
 
 * Add `glue.__version__` (kept in sync with `setup.py`).
 * Expand `examples/00 - presentation` into a 1920×1080 GSAP showcase: brand cover page-turn, scroll story, Windows/macOS/Linux window demos, and live parallel JS↔Python bridge demos.
 * Examples serve `favicon.ico` from each example's own `web/` (or CRA `public/`) instead of shared Bottle routes from repo `assets/`.
+* Modernize README around the presentation walkthrough (screenshot gallery paths under `assets/readme/`) and simplify the technical docs.
 
 ### 0.3.8
 

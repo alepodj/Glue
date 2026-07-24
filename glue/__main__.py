@@ -23,27 +23,27 @@ parser.add_argument(
     help="Main python file to run app from"
 )
 parser.add_argument(
-    "web_folder",
+    "ui_folder",
     type=str,
-    help="Folder including all web files including file as html, css, ico, etc."
+    help="Folder with frontend files (html, css, js, icons, …); typically 'ui'"
 )
 args: Namespace
 unknown_args: List[str]
 args, unknown_args = parser.parse_known_args()
 main_script: str = args.main_script
-web_folder: str = args.web_folder
+ui_folder: str = args.ui_folder
 
-print("Building executable with main script '%s' and web folder '%s'...\n" %
-      (main_script, web_folder))
+print("Building executable with main script '%s' and UI folder '%s'...\n" %
+      (main_script, ui_folder))
 
 _glue_js_ref = importlib_resources.files('glue') / 'glue.js'
 with importlib_resources.as_file(_glue_js_ref) as _glue_js_path:
     glue_js_file: str = str(_glue_js_path)
     js_file_arg: str = '%s%sglue' % (glue_js_file, os.pathsep)
-    web_folder_arg: str = '%s%s%s' % (web_folder, os.pathsep, web_folder)
+    ui_folder_arg: str = '%s%s%s' % (ui_folder, os.pathsep, ui_folder)
 
     needed_args: List[str] = ['--hidden-import', 'bottle_websocket',
-                              '--add-data', js_file_arg, '--add-data', web_folder_arg]
+                              '--add-data', js_file_arg, '--add-data', ui_folder_arg]
     full_args: List[str] = [main_script] + needed_args + unknown_args
     print('Running:\npyinstaller', ' '.join(full_args), '\n')
 

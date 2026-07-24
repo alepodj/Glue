@@ -1,8 +1,9 @@
 from __future__ import annotations
 import traceback
+import warnings
 from typing import Union, Any, Dict, List, Set, Tuple, Optional, Callable
 from typing_extensions import Literal
-from glue.types import OptionsDictT, WebSocketT
+from glue.types import OptionsDictT, WebSocketT, WindowGeometryT
 import gevent as gvt
 import json as jsn
 import bottle as btl
@@ -47,6 +48,11 @@ _js_result_timeout: int = 10000
 
 # Attribute holding the start args from calls to glue.start()
 _start_args: OptionsDictT = {}
+
+_DEFAULT_ALLOWED_EXTENSIONS: List[str] = ['.js', '.html', '.txt', '.htm', '.xhtml', '.vue']
+_DEFAULT_CMDLINE_ARGS: List[str] = ['--disable-http-cache']
+_JS_NAME_RE = rgx.compile(r'^[A-Za-z_][A-Za-z0-9_]*$')
+_this_module = sys.modules[__name__]
 
 
 # Public functions
@@ -122,7 +128,7 @@ EXPOSED_JS_FUNCTIONS: pp.ZeroOrMore = pp.ZeroOrMore(
 
 def init(
         path: str,
-        allowed_extensions: List[str] = ['.js', '.html', '.txt', '.htm', '.xhtml', '.vue'],
+        allowed_extensions: Optional[List[str]] = None,
         js_result_timeout: int = 10000) -> None:
     '''Initialise Glue.
 
@@ -145,6 +151,9 @@ def init(
     global root_path, _js_functions, _js_result_timeout
     root_path = _get_real_path(path)
 
+    if allowed_extensions is None:
+        allowed_extensions = list(_DEFAULT_ALLOWED_EXTENSIONS)
+
     js_functions = set()
     for root, _, files in os.walk(root_path):
         for name in files:
@@ -157,10 +166,7 @@ def init(
                     expose_calls = set()
                     matches = EXPOSED_JS_FUNCTIONS.parseString(contents).asList()
                     for expose_call in matches:
-                        # Verify that function name is valid
-                        msg = "glue.expose() call contains '(' or '='"
-                        assert rgx.findall(r'[\(=]', expose_call) == [], msg
-                        expose_calls.add(expose_call)
+                        expose_calls.add(_validate_js_name(expose_call))
                     js_functions.update(expose_calls)
             except UnicodeDecodeError:
                 pass    # Malformed file probably
@@ -179,16 +185,16 @@ def start(
         port: int = 8000,
         block: bool = True,
         jinja_templates: Optional[str] = None,
-        cmdline_args: List[str] = ['--disable-http-cache'],
+        cmdline_args: Optional[List[str]] = None,
         size: Optional[Tuple[int, int]] = None,
         position: Optional[Tuple[int, int]] = None,
-        geometry: Dict[str, Tuple[int, int]] = {},
+        geometry: Optional[Dict[str, WindowGeometryT]] = None,
         close_callback: Optional[Callable[..., Any]] = None,
         app_mode: bool = True,
         all_interfaces: bool = False,
         disable_cache: bool = True,
         default_path: str = 'index.html',
-        app: btl.Bottle = btl.default_app(),
+        app: Optional[btl.Bottle] = None,
         shutdown_delay: float = 1.0) -> None:
     '''Start the Glue app.
 
@@ -244,7 +250,10 @@ def start(
     :param app_mode: Whether to run Edge/Chrome in App Mode (:code:`--app`).
         *Default:* :code:`True`.
     :param all_interfaces: Whether to allow the :mod:`bottle` server to listen
-        for connections on all interfaces.
+        for connections on all interfaces (:code:`0.0.0.0`). **Warning:** any
+        client that can reach this host can invoke every :func:`expose`d Python
+        function over the WebSocket. Use only on trusted networks. *Default:*
+        :code:`False`.
     :param disable_cache: Sets the no-store response header when serving
         assets.
     :param default_path: The default file to retrieve for the root URL.
@@ -260,6 +269,22 @@ def start(
         If not, then Glue closes. In case the user has closed the browser and
         wants to exit the program. *Default:* :code:`1.0` seconds.
     '''
+    if cmdline_args is None:
+        cmdline_args = list(_DEFAULT_CMDLINE_ARGS)
+    if geometry is None:
+        geometry = {}
+    if app is None:
+        app = btl.default_app()
+
+    if all_interfaces:
+        warnings.warn(
+            "all_interfaces=True binds on 0.0.0.0; any client that can reach "
+            "this host can call @glue.expose Python functions over the "
+            "WebSocket. Use only on trusted networks.",
+            UserWarning,
+            stacklevel=2,
+        )
+
     _start_args.update({
         'mode': mode,
         'host': host,
@@ -335,15 +360,22 @@ def start(
         port = _start_args['port']
         if not isinstance(port, int):
             raise TypeError("'port' start_arg/option must be of type int")
+        ready = False
         for _ in range(100):
             try:
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 sock.settimeout(0.2)
                 sock.connect((host, port))
                 sock.close()
+                ready = True
                 break
             except OSError:
                 gvt.sleep(0.05)
+        if not ready:
+            raise RuntimeError(
+                'Glue server did not become ready on %s:%s '
+                '(not accepting connections after startup wait)' % (host, port)
+            )
         show(*start_urls)
 
     # Start the webserver first, then open browser once listening (avoids race on load)
@@ -577,12 +609,23 @@ def _get_real_path(path: str) -> str:
         return os.path.abspath(path)
 
 
+def _validate_js_name(name: str) -> str:
+    if not _JS_NAME_RE.fullmatch(name):
+        raise ValueError(
+            'Invalid JavaScript function name from glue.expose(): %r '
+            '(expected a Python/JS identifier)' % (name,)
+        )
+    return name
+
+
 def _mock_js_function(f: str) -> None:
-    exec('%s = lambda *args: _mock_call("%s", args)' % (f, f), globals())
+    name = _validate_js_name(f)
+    setattr(_this_module, name, lambda *args, _n=name: _mock_call(_n, args))
 
 
 def _import_js_function(f: str) -> None:
-    exec('%s = lambda *args: _js_call("%s", args)' % (f, f), globals())
+    name = _validate_js_name(f)
+    setattr(_this_module, name, lambda *args, _n=name: _js_call(_n, args))
 
 
 def _call_object(name: str, args: Any) -> Dict[str, Any]:

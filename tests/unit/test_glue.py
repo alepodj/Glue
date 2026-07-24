@@ -21,6 +21,14 @@ def test_exposed_js_functions(js_code, expected_matches):
     assert matches == expected_matches, f'Expected {expected_matches} (found: {matches}) in: {js_code}'
 
 
+def test_validate_js_name():
+    assert glue._validate_js_name('say_hello_js') == 'say_hello_js'
+    with pytest.raises(ValueError):
+        glue._validate_js_name('bad-name')
+    with pytest.raises(ValueError):
+        glue._validate_js_name('foo(bar)')
+
+
 def test_init():
     """Test glue.init() against a test directory and ensure that all JS functions are in the global _js_functions."""
     glue.init(path=INIT_DIR)
@@ -28,3 +36,6 @@ def test_init():
     assert sorted(glue._js_functions) == expected, (
         f'Expected {expected} (found: {sorted(glue._js_functions)}) in {INIT_DIR}'
     )
+    # Stubs are installed on the glue module without exec
+    assert callable(glue.say_hello_js)
+    assert callable(glue.js_random)

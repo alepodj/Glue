@@ -16,6 +16,12 @@ else:
     JinjaEnvironmentT: TypeAlias = Any
     WebSocketT: TypeAlias = Any
 
+
+class WindowGeometryT(TypedDict, total=False):
+    size: Optional[Tuple[int, int]]
+    position: Optional[Tuple[int, int]]
+
+
 OptionsDictT = TypedDict(
     'OptionsDictT',
     {
@@ -27,7 +33,7 @@ OptionsDictT = TypedDict(
         'cmdline_args': List[str],
         'size': Optional[Tuple[int, int]],
         'position': Optional[Tuple[int, int]],
-        'geometry': Dict[str, Tuple[int, int]],
+        'geometry': Dict[str, WindowGeometryT],
         'close_callback': Optional[Callable[..., Any]],
         'app_mode': bool,
         'all_interfaces': bool,

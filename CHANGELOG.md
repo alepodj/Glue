@@ -1,5 +1,13 @@
 # Change log
 
+### 0.3.2
+
+* Fail startup if the webserver never becomes ready (no more silent browser open on a dead port).
+* Replace `exec`-based JS stubs with `setattr` + strict identifier validation.
+* Fix mutable default arguments on `init` / `start` (`allowed_extensions`, `cmdline_args`, `geometry`, `app`).
+* Correct `geometry` typing (`WindowGeometryT` with size/position).
+* Warn when `all_interfaces=True` (exposed functions reachable on the network).
+
 ### 0.3.1
 
 * Fix unit `test_init` (was asserting `None == None` via `.sort()`).

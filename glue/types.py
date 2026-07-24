@@ -35,7 +35,6 @@ OptionsDictT = TypedDict(
         'default_path': str,
         'app': Bottle,
         'shutdown_delay': float,
-        'suppress_error': bool,
         'jinja_env': JinjaEnvironmentT,
     },
     total=False

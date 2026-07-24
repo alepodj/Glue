@@ -15,9 +15,11 @@ def test_01_hello_world(driver):
         driver.get(glue_url)
         assert driver.title == "Hello, World!"
 
-        console_logs = get_console_logs(driver, minimum_logs=2)
-        assert "Hello from Javascript World!" in console_logs[0]['message']
-        assert "Hello from Python World!" in console_logs[1]['message']
+        expected = ("Hello from Javascript World!", "Hello from Python World!")
+        console_logs = get_console_logs(driver, contains=expected)
+        messages = [entry['message'] for entry in console_logs]
+        for needle in expected:
+            assert any(needle in msg for msg in messages), messages
 
 
 def test_02_hello_world_chrome(driver):
@@ -25,9 +27,11 @@ def test_02_hello_world_chrome(driver):
         driver.get(glue_url)
         assert driver.title == "Hello, World! (Chrome)"
 
-        console_logs = get_console_logs(driver, minimum_logs=2)
-        assert "Hello from Javascript World!" in console_logs[0]['message']
-        assert "Hello from Python World!" in console_logs[1]['message']
+        expected = ("Hello from Javascript World!", "Hello from Python World!")
+        console_logs = get_console_logs(driver, contains=expected)
+        messages = [entry['message'] for entry in console_logs]
+        for needle in expected:
+            assert any(needle in msg for msg in messages), messages
 
 
 def test_03_callbacks(driver):
@@ -47,7 +51,7 @@ def test_04_sync_callbacks(driver):
 
         console_logs = get_console_logs(driver, minimum_logs=1)
         assert "Got this from Python:" in console_logs[0]['message']
-        assert "callbacks.html" in console_logs[0]['message']
+        assert "sync_callbacks.html" in console_logs[0]['message']
 
 
 def test_05_file_access(driver: webdriver.Remote):

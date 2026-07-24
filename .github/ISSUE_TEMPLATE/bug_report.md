@@ -25,8 +25,8 @@ A clear and concise description of what you expected to happen.
 
 **System Information**
  - OS: [e.g. Windows 10 x64, Linux Ubuntu, macOS 12]
- - Browser: [e.g. Chrome 108.0.5359.99 (Official Build) (64-bit), Safari 16, Firefox 107.0.1]
- - Python Distribution: [e.g. Python.org 3.9, Anaconda3 2021.11 3.9, ActivePython 3.9]
+ - Browser: [e.g. Edge 120, Chrome 120 — Chromium-family only; Glue does not launch Safari/Firefox]
+ - Python Distribution: [e.g. Python.org 3.12, Anaconda 3.11]
 
 **Screenshots**
 If applicable, add screenshots to help explain your problem.

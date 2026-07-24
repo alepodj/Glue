@@ -24,6 +24,7 @@ def test_exposed_js_functions(js_code, expected_matches):
 def test_init():
     """Test glue.init() against a test directory and ensure that all JS functions are in the global _js_functions."""
     glue.init(path=INIT_DIR)
-    result = glue._js_functions.sort()
-    functions = ['show_log', 'js_random', 'show_log_alt', 'say_hello_js'].sort()
-    assert result == functions, f'Expected {functions} (found: {result}) in {INIT_DIR}'
+    expected = ['js_random', 'say_hello_js', 'show_log', 'show_log_alt']
+    assert sorted(glue._js_functions) == expected, (
+        f'Expected {expected} (found: {sorted(glue._js_functions)}) in {INIT_DIR}'
+    )

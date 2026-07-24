@@ -6,14 +6,14 @@ with open('README.md') as read_me:
 
 setup(
     name='Glue',
-    version='0.3.0',
+    version='0.3.1',
     author='alepodj',
     url='https://github.com/alepodj/Glue',
     packages=['glue'],
     package_data={
         'glue': ['glue.js', 'py.typed'],
     },
-    install_requires=['bottle', 'bottle-websocket', 'future', 'pyparsing', 'typing_extensions', 'importlib_resources'],
+    install_requires=['bottle', 'bottle-websocket', 'pyparsing', 'typing_extensions', 'importlib_resources'],
     extras_require={
         "jinja2": ['jinja2>=2.10']
     },

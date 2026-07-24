@@ -135,7 +135,6 @@ glue = {
                             let return_val = glue._exposed_functions[message.name](...message.args);
                             glue._websocket.send(glue._toJSON({'return': message.call, 'status':'ok', 'value': return_val}));
                         } catch(err) {
-                            debugger
                             glue._websocket.send(glue._toJSON(
                                 {'return': message.call,
                                 'status':'error',
@@ -163,11 +162,3 @@ glue = {
 };
 
 glue._init();
-
-if(typeof require !== 'undefined'){
-    // Avoid name collisions when using Electron, so jQuery etc work normally
-    window.nodeRequire = require;
-    delete window.require;
-    delete window.exports;
-    delete window.module;
-}

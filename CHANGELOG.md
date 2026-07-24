@@ -1,5 +1,16 @@
 # Change log
 
+### 0.3.1
+
+* Fix unit `test_init` (was asserting `None == None` via `.sort()`).
+* Fix sync-callbacks integration assertion to require `sync_callbacks.html`.
+* Fix integration test harness so `mode=None` / `port=0` actually override example `glue.start()` defaults, and port discovery checks the parent process (not only children).
+* Harden hello-world console assertions against unrelated browser noise (e.g. missing favicon 404).
+* Remove dead `suppress_error` / `api_error_message`, unused `future` dependency, Py2-era imports.
+* Remove Electron leftover shim and `debugger` from `glue.js`.
+* Delete obsolete `.travis.yml`; update FUNDING and issue templates for Glue / Chromium-family.
+* Doc scrub: Eel leftovers in docstrings/CLI; README `js_result_timeout` name.
+
 ### 0.3.0
 
 * Start the webserver before opening the browser and wait until the port accepts connections (fixes early load / race crashes that previously required a post-install Eel patch).

@@ -1,0 +1,13 @@
+
+import glue
+
+_real_start = glue.start
+
+def _test_start(*args, **kwargs):
+    kwargs['mode'] = None
+    kwargs['port'] = 0
+    return _real_start(*args, **kwargs)
+
+glue.start = _test_start
+
+import hello

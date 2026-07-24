@@ -1,7 +1,5 @@
 from __future__ import annotations
-from builtins import range
 import traceback
-from io import open
 from typing import Union, Any, Dict, List, Set, Tuple, Optional, Callable
 from typing_extensions import Literal
 from glue.types import OptionsDictT, WebSocketT
@@ -49,16 +47,6 @@ _js_result_timeout: int = 10000
 
 # Attribute holding the start args from calls to glue.start()
 _start_args: OptionsDictT = {}
-
-# == Temporary (suppressible) error message to inform users of breaking API change for v1.0.0 ===
-api_error_message: str = '''
-----------------------------------------------------------------------------------
-  'options' argument deprecated in v1.0.0, see https://github.com/alepodj/Glue
-  To suppress this error, add 'suppress_error=True' to start() call.
-  This option will be removed in future versions
-----------------------------------------------------------------------------------
-'''
-# ===============================================================================================
 
 
 # Public functions
@@ -136,7 +124,7 @@ def init(
         path: str,
         allowed_extensions: List[str] = ['.js', '.html', '.txt', '.htm', '.xhtml', '.vue'],
         js_result_timeout: int = 10000) -> None:
-    '''Initialise Eel.
+    '''Initialise Glue.
 
     This function should be called before :func:`start()` to initialise the
     parameters for the web interface, such as the path to the files to be
@@ -201,8 +189,7 @@ def start(
         disable_cache: bool = True,
         default_path: str = 'index.html',
         app: btl.Bottle = btl.default_app(),
-        shutdown_delay: float = 1.0,
-        suppress_error: bool = False) -> None:
+        shutdown_delay: float = 1.0) -> None:
     '''Start the Glue app.
 
     Suppose you put all the frontend files in a directory called
@@ -272,9 +259,6 @@ def start(
         seconds, and then checks if there are now any websocket connections.
         If not, then Glue closes. In case the user has closed the browser and
         wants to exit the program. *Default:* :code:`1.0` seconds.
-    :param suppress_error: Temporary (suppressible) error message to inform
-        users of breaking API change for v1.0.0. Set to `True` to suppress
-        the error message.
     '''
     _start_args.update({
         'mode': mode,
@@ -293,7 +277,6 @@ def start(
         'default_path': default_path,
         'app': app,
         'shutdown_delay': shutdown_delay,
-        'suppress_error': suppress_error,
     })
 
     if _start_args['port'] == 0:
@@ -375,8 +358,8 @@ def show(*start_urls: str) -> None:
 
     Suppose you have two files in your :file:`web` folder. The file
     :file:`hello.html` regularly includes :file:`glue.js` and provides
-    interactivity, and the file :file:`goodbye.html` does not include
-    :file:`glue.js` and simply provides plain HTML content not reliant on Eel.
+    interactivity, and the file     :file:`goodbye.html` does not include
+    :file:`glue.js` and simply provides plain HTML content not reliant on Glue.
 
     First, we defien a callback function to be called when the browser
     window is closed:

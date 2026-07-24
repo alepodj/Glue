@@ -13,28 +13,39 @@ import psutil
 TEST_DATA_DIR = Path(__file__).parent / "data"
 
 
-def get_process_listening_port(proc):
-    conn = None
-    if platform.system() == "Windows":
-        current_process = psutil.Process(proc.pid)
-        children = []
-        while children == []:
-            time.sleep(0.01)
-            children = current_process.children(recursive=True)
-            if (3, 6) <= sys.version_info < (3, 7):
-                children = [current_process]
-        for child in children:
-            while child.connections() == [] and not any(conn.status == "LISTEN" for conn in child.connections()):
-                time.sleep(0.01)
+def _process_connections(proc):
+    if hasattr(proc, 'net_connections'):
+        return proc.net_connections()
+    return proc.connections()
 
-            conn = next(filter(lambda conn: conn.status == "LISTEN", child.connections()))
-    else:
-        psutil_proc = psutil.Process(proc.pid)
-        while not any(conn.status == "LISTEN" for conn in psutil_proc.connections()):
-            time.sleep(0.01)
 
-        conn = next(filter(lambda conn: conn.status == "LISTEN", psutil_proc.connections()))
-    return conn.laddr.port
+def get_process_listening_port(proc, timeout=30.0):
+    """Return the first LISTEN port for *proc* or any of its children."""
+    psutil_proc = psutil.Process(proc.pid)
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        if proc.poll() is not None:
+            raise RuntimeError(
+                f'Glue example process exited before listening (exit code {proc.returncode})'
+            )
+        try:
+            candidates = [psutil_proc] + psutil_proc.children(recursive=True)
+        except psutil.NoSuchProcess as exc:
+            raise RuntimeError('Glue example process no longer exists') from exc
+
+        for candidate in candidates:
+            try:
+                for conn in _process_connections(candidate):
+                    if conn.status == 'LISTEN':
+                        return conn.laddr.port
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                continue
+        time.sleep(0.01)
+
+    raise TimeoutError(
+        f'No LISTEN port found for pid {proc.pid} within {timeout}s '
+        f'(platform={platform.system()})'
+    )
 
 
 @contextlib.contextmanager
@@ -44,16 +55,19 @@ def get_glue_server(example_py, start_html):
 
     try:
         with tempfile.NamedTemporaryFile(mode='w', dir=os.path.dirname(example_py), delete=False) as test:
-            # We want to run the examples unmodified to keep the test as realistic as possible, but all of the examples
-            # want to launch browsers, which won't be supported in CI. The below script will configure glue to open on
-            # a random port and not open a browser, before importing the Python example file - which will then
-            # do the rest of the set up and start the glue server. This is definitely hacky, and means we can't
-            # test mode/port settings for examples ... but this is OK for now.
+            # Wrap glue.start so mode/port from the example call are overridden
+            # (start() would otherwise apply its defaults and ignore pre-set _start_args).
             test.write(f"""
 import glue
 
-glue._start_args['mode'] = None
-glue._start_args['port'] = 0
+_real_start = glue.start
+
+def _test_start(*args, **kwargs):
+    kwargs['mode'] = None
+    kwargs['port'] = 0
+    return _real_start(*args, **kwargs)
+
+glue.start = _test_start
 
 import {os.path.splitext(os.path.basename(example_py))[0]}
 """)
@@ -61,9 +75,9 @@ import {os.path.splitext(os.path.basename(example_py))[0]}
                 [sys.executable, test.name],
                 cwd=os.path.dirname(example_py),
             )
-        eel_port = get_process_listening_port(proc)
+        glue_port = get_process_listening_port(proc)
 
-        yield f"http://localhost:{eel_port}/{start_html}"
+        yield f"http://localhost:{glue_port}/{start_html}"
 
         proc.terminate()
 
@@ -75,11 +89,28 @@ import {os.path.splitext(os.path.basename(example_py))[0]}
                 pass
 
 
-def get_console_logs(driver, minimum_logs=0):
+def get_console_logs(driver, minimum_logs=0, *, contains=None, timeout=5.0):
+    """Collect browser console logs.
+
+    If *contains* is a sequence of substrings, keep polling until each appears
+    in some log message (or *timeout* seconds elapse).
+    """
+    deadline = time.time() + timeout
     console_logs = driver.get_log('browser')
 
-    while len(console_logs) < minimum_logs:
-        console_logs += driver.get_log('browser')
-        time.sleep(0.1)
+    def _messages():
+        return [entry['message'] for entry in console_logs]
 
-    return console_logs
+    while True:
+        if contains:
+            messages = _messages()
+            if all(any(needle in msg for msg in messages) for needle in contains):
+                return console_logs
+        elif len(console_logs) >= minimum_logs:
+            return console_logs
+
+        if time.time() >= deadline:
+            return console_logs
+
+        time.sleep(0.1)
+        console_logs += driver.get_log('browser')

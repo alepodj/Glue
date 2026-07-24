@@ -6,7 +6,7 @@ from argparse import ArgumentParser, Namespace
 from typing import List
 
 parser: ArgumentParser = ArgumentParser(description="""
-Glue is a little Python library for making simple Electron-like offline HTML/JS GUI apps,
+Glue is a little Python library for making simple Chromium-based offline HTML/JS GUI apps,
  with full access to Python capabilities and libraries.
 """)
 parser.add_argument(

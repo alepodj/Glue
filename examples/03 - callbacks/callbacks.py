@@ -3,11 +3,10 @@ import sys
 import random
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
-from common import WINDOW_SIZE, use_shared_assets
+from common import WINDOW_SIZE
 
 import glue
 
-use_shared_assets()
 glue.init('web')
 
 @glue.expose

@@ -3,7 +3,8 @@
 ### 0.3.9
 
 * Add `glue.__version__` (kept in sync with `setup.py`).
-* Replace presentation example with `examples/00 - presentation`: GSAP page-turn from brand cover into a scrollable story (menubar demo, live JS↔Python bridge, simplicity pitch) at 1920×1080.
+* Expand `examples/00 - presentation` into a 1920×1080 GSAP showcase: brand cover page-turn, scroll story, Windows/macOS/Linux window demos, and live parallel JS↔Python bridge demos.
+* Examples serve `favicon.ico` from each example's own `web/` (or CRA `public/`) instead of shared Bottle routes from repo `assets/`.
 
 ### 0.3.8
 

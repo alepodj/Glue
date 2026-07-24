@@ -2,11 +2,9 @@ import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
-from common import WINDOW_SIZE, use_shared_assets
+from common import WINDOW_SIZE
 
 import glue
-
-use_shared_assets()
 
 # Set web files folder and optionally specify which file types to check for glue.expose()
 glue.init('web')

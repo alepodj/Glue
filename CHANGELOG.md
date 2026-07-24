@@ -1,5 +1,11 @@
 # Change log
 
+### 0.3.4
+
+* Align packaging: `setup.py` declares gevent stack; `requirements.txt` matches and drops the `greenlet<2` pin (blocked modern Python).
+* `pip install 'Glue[build]'` for PyInstaller; `python -m glue` uses `importlib.resources` and a clear error if PyInstaller is missing.
+* Modernize GitHub Actions (`checkout`/`setup-python` v4/v5), CodeQL v3 (remove unsafe `HEAD^2` checkout), publish via `python -m build` + wheel.
+
 ### 0.3.3
 
 * Protocol: unknown JS (and Python) exposed names return an error instead of hanging until timeout.

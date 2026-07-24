@@ -6,23 +6,20 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@master
+        uses: actions/checkout@v4
       - name: Setup Python
-        uses: actions/setup-python@master
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.x
-          architecture: x64
-      - name: Install setuptools
-        run: pip install setuptools==76.1.0
-      - name: Build a source distribution
-        run: python setup.py sdist
-      - name: Publish to prod PyPI
-        uses: pypa/gh-action-pypi-publish@4f4304928fc886cd021893f6defb1bd53d0a1e5a
+          python-version: "3.x"
+      - name: Install build
+        run: pip install build
+      - name: Build sdist and wheel
+        run: python -m build
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          user: __token__
           password: ${{ secrets.pypi_token }}

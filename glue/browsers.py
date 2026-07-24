@@ -1,12 +1,12 @@
 from __future__ import annotations
 import subprocess as sps
-import sys
 from typing import Union, List, Dict, Iterable, Optional
 from types import ModuleType
 
 from glue.types import OptionsDictT
 import glue.chrome as chm
 import glue.edge as edge
+from glue.chromium import is_windows
 
 _browser_paths: Dict[str, str] = {}
 _browser_modules: Dict[str, ModuleType] = {
@@ -66,7 +66,7 @@ def _run_browser(browser_name: str, options: OptionsDictT, start_urls: List[str]
 def _auto_browser_order() -> List[str]:
     # Prefer Edge on Windows (preinstalled); Chrome/Chromium everywhere else,
     # and as fallback on Windows when Edge is unavailable.
-    if sys.platform in ['win32', 'win64'] or sys.platform.startswith('win'):
+    if is_windows():
         return ['edge', 'chrome']
     return ['chrome']
 

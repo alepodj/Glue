@@ -24,28 +24,42 @@ source venv/bin/activate
 
 ```bash
 pip3 install -r requirements.txt        # Glue's 'prod' requirements
-pip3 install -r requirements-test.txt   # pytest and selenium
+pip3 install -r requirements-test.txt   # pytest, selenium, mypy, Glue[jinja2,build]
 pip3 install -r requirements-meta.txt   # tox
 ```
 
+Or editable install with extras: `pip install -e ".[jinja2,build]"`.
+
 ### (Recommended) Run Automated Tests
-Tox is configured to run tests against each major version we support (3.7+). In order to run Tox as configured, you will need to install multiple versions of Python. See the pinned minor versions in `.python-version` for recommendations.
 
-#### Tox Setup
-Our Tox configuration requires [Chrome](https://www.google.com/chrome) and [ChromeDriver](https://chromedriver.chromium.org/home). See each of those respective project pages for more information on setting each up.
+CI runs on GitHub Actions (see `.github/workflows/test.yml`). Locally, Tox can run tests against each major version we support (3.7+). You will need multiple Python installs for the full Tox matrix; `.python-version` pins a recommended default (currently 3.10).
 
-**Note**: Pay attention to the version of Chrome that is installed on your OS because you need to select the compatible ChromeDriver version.
+#### Test dependencies
+
+Integration tests use **Chrome** plus **Selenium** with **`webdriver_manager`** (ChromeDriver is downloaded automatically — you do not need to install ChromeDriver by hand).
 
 #### Running Tests
 
-To test Glue against a specific version of Python you have installed, e.g. Python 3.7 in this case, run:
+Quick local run (current Python):
 
 ```bash
-tox -e py37
+python -m pytest tests/unit tests/integration -q --timeout=240
 ```
 
-To test Glue against all supported versions, run the following:
+To test Glue against a specific Tox env, e.g. Python 3.10:
+
+```bash
+tox -e py310
+```
+
+To test Glue against all configured Tox envs:
 
 ```bash
 tox
+```
+
+Typecheck:
+
+```bash
+tox -e typecheck
 ```

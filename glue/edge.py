@@ -1,32 +1,15 @@
 from __future__ import annotations
 import os
-import platform
-import subprocess as sps
-import sys
 from shutil import which
-from typing import List, Optional
+from typing import Optional
 
-from glue.types import OptionsDictT
+from glue.chromium import is_windows, run  # shared Chromium launcher API
 
 name: str = 'Microsoft Edge'
 
 
-def run(path: str, options: OptionsDictT, start_urls: List[str]) -> None:
-    if not isinstance(options['cmdline_args'], list):
-        raise TypeError("'cmdline_args' option must be of type List[str]")
-    if options['app_mode']:
-        for url in start_urls:
-            sps.Popen([path, '--app=%s' % url] +
-                      options['cmdline_args'],
-                      stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
-    else:
-        args: List[str] = options['cmdline_args'] + start_urls
-        sps.Popen([path, '--new-window'] + args,
-                  stdout=sps.PIPE, stderr=sys.stderr, stdin=sps.PIPE)
-
-
 def find_path() -> Optional[str]:
-    if platform.system() != 'Windows':
+    if not is_windows():
         return None
     return _find_edge_win()
 

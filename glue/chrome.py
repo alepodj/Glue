@@ -3,29 +3,15 @@ import sys
 import os
 import subprocess as sps
 from shutil import which
-from typing import List, Optional
-from glue.types import OptionsDictT
+from typing import Optional
 
-# Every browser specific module must define run(), find_path() and name like this
+from glue.chromium import is_windows, run  # shared Chromium launcher API
 
 name: str = 'Google Chrome/Chromium'
 
-def run(path: str, options: OptionsDictT, start_urls: List[str]) -> None:
-    if not isinstance(options['cmdline_args'], list):
-        raise TypeError("'cmdline_args' option must be of type List[str]")
-    if options['app_mode']:
-        for url in start_urls:
-            sps.Popen([path, '--app=%s' % url] +
-                       options['cmdline_args'],
-                       stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
-    else:
-        args: List[str] = options['cmdline_args'] + start_urls
-        sps.Popen([path, '--new-window'] + args,
-                   stdout=sps.PIPE, stderr=sys.stderr, stdin=sps.PIPE)
-
 
 def find_path() -> Optional[str]:
-    if sys.platform in ['win32', 'win64']:
+    if is_windows():
         return _find_chrome_win()
     elif sys.platform == 'darwin':
         return _find_chrome_mac() or _find_chromium_mac()

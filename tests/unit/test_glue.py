@@ -1,4 +1,5 @@
 import glue
+import glue.browsers as browsers
 import pytest
 from tests.utils import TEST_DATA_DIR
 
@@ -39,3 +40,41 @@ def test_init():
     # Stubs are installed on the glue module without exec
     assert callable(glue.say_hello_js)
     assert callable(glue.js_random)
+
+
+def test_build_urls_from_string_and_dict():
+    options = {'host': '127.0.0.1', 'port': 9000}
+    urls = browsers._build_urls(
+        ['hello.html', {'path': 'other.html', 'host': 'localhost', 'port': '9001'}],
+        options,
+    )
+    assert urls == [
+        'http://127.0.0.1:9000/hello.html',
+        'http://localhost:9001/other.html',
+    ]
+
+
+def test_auto_browser_order(monkeypatch):
+    monkeypatch.setattr(browsers, 'is_windows', lambda: True)
+    assert browsers._auto_browser_order() == ['edge', 'chrome']
+    monkeypatch.setattr(browsers, 'is_windows', lambda: False)
+    assert browsers._auto_browser_order() == ['chrome']
+
+
+def test_open_mode_none_does_not_launch(monkeypatch):
+    launched = []
+
+    def boom(*_a, **_k):
+        launched.append(True)
+        raise AssertionError('browser should not launch')
+
+    monkeypatch.setattr(browsers, '_open_auto', boom)
+    monkeypatch.setattr(browsers, '_run_browser', boom)
+    browsers.open(['index.html'], {'mode': None, 'host': 'localhost', 'port': 8000})
+    browsers.open(['index.html'], {'mode': False, 'host': 'localhost', 'port': 8000})
+    assert launched == []
+
+
+def test_open_unsupported_mode():
+    with pytest.raises(ValueError, match='Unsupported mode'):
+        browsers.open(['index.html'], {'mode': 'firefox', 'host': 'localhost', 'port': 8000})

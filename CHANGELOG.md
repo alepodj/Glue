@@ -1,5 +1,11 @@
 # Change log
 
+### 0.3.5
+
+* Docs: drop upstream Eel hero screenshot; fix default `allowed_extensions` (include `.vue`); renumber file_access example README; label pre-fork CHANGELOG history; refresh README-developers (webdriver_manager, GHA, pytest).
+* Share Chromium launch path for Chrome/Edge (`glue/chromium.py`); drop bogus `win64` platform checks.
+* Add unit tests for URL building, auto browser order, and `mode=None`/`False` / unsupported mode.
+
 ### 0.3.4
 
 * Align packaging: `setup.py` declares gevent stack; `requirements.txt` matches and drops the `greenlet<2` pin (blocked modern Python).
@@ -49,6 +55,11 @@
 * Courtesy attribution to upstream [Eel](https://github.com/python-eel/Eel).
 * Package metadata points at https://github.com/alepodj/Glue
 
+---
+
+## Upstream Eel history (pre-fork)
+
+Entries below are from [python-eel/Eel](https://github.com/python-eel/Eel) before the Glue fork. Some mention Electron, MSIE, or older APIs that **Glue 0.2.0+ no longer supports**.
 
 ### 0.18.2
 

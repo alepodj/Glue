@@ -8,8 +8,6 @@ Glue is a little Python library for making simple Electron-like offline HTML/JS 
 
 Glue is designed to take the hassle out of writing short and simple GUI applications. If you are familiar with Python and web development, probably just jump to [this example](https://github.com/alepodj/Glue/tree/main/examples/05%20-%20file_access) which picks random file names out of the given folder (something that is impossible from a browser).
 
-<p align="center"><img src="https://raw.githubusercontent.com/samuelhwilliams/Eel/master/examples/04%20-%20file_access/Screenshot.png" ></p>
-
 <!-- TOC -->
 
 - [Glue](#glue)
@@ -205,7 +203,7 @@ and a short Python script `hello.py`:
 import glue
 
 # Set web files folder and optionally specify which file types to check for glue.expose()
-#   *Default allowed_extensions are: ['.js', '.html', '.txt', '.htm', '.xhtml']
+#   *Default allowed_extensions are: ['.js', '.html', '.txt', '.htm', '.xhtml', '.vue']
 glue.init('web', allowed_extensions=['.js', '.html'])
 
 @glue.expose                         # Expose this function to Javascript

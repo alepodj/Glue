@@ -1,5 +1,14 @@
 # Change log
 
+### 0.3.9
+
+* Add `glue.__version__` (kept in sync with `setup.py`).
+* Replace presentation example with `examples/00 - presentation`: GSAP page-turn from brand cover into a scrollable story (menubar demo, live JS↔Python bridge, simplicity pitch) at 1920×1080.
+
+### 0.3.8
+
+* Add `examples/11 - presentation`: 1080p brand showcase (logo, wordmark, slogan) for README screenshots.
+
 ### 0.3.7
 
 * `mode='auto'` prefers Chrome/Chromium on all platforms; Edge is Windows-only fallback if Chrome is missing. macOS/Linux require Chrome/Chromium (no Edge fallback).

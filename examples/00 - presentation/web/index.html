@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Glue</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;1,400&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+  <script type="text/javascript" src="/glue.js"></script>
+</head>
+<body>
+  <div class="atmosphere" aria-hidden="true">
+    <div class="orb orb-a"></div>
+    <div class="orb orb-b"></div>
+    <div class="grain"></div>
+  </div>
+
+  <!-- PAGE 1: Brand -->
+  <section class="page page-hero" id="page-hero" aria-label="Glue">
+    <div class="hero" id="hero">
+      <img class="logo" id="logo" src="/logo.png" width="420" height="420" alt="Glue logo" />
+      <h1 class="brand">Glue</h1>
+      <p class="slogan">
+        A little Python library for making Desktop applications
+        with web technologies <span class="tech">HTML/CSS/JS</span>.
+      </p>
+    </div>
+
+    <button type="button" class="scroll-cue" id="scroll-cue" aria-label="Continue">
+      <span class="scroll-cue__arrow" aria-hidden="true"></span>
+    </button>
+    <p class="version" id="version">Glue</p>
+  </section>
+
+  <!-- PAGE 2: Story (scrollable) -->
+  <section class="page page-story" id="page-story" aria-label="Why Glue" hidden>
+    <div class="story-scroll" id="story-scroll">
+
+      <header class="story-top">
+        <p class="eyebrow">Scroll the story · scroll up at the top to return</p>
+      </header>
+
+      <article class="panel panel-pitch" data-reveal>
+        <p class="kicker">The pitch</p>
+        <h2>If you already speak the web,<br />you already speak desktop.</h2>
+        <p class="lede">
+          Glue hosts a local window, then lets Python and JavaScript call each other.
+          No Electron ceremony. No new UI framework. Just HTML, CSS, JS — and Python where it belongs.
+        </p>
+      </article>
+
+      <article class="panel panel-steps" data-reveal>
+        <p class="kicker">Three lines to a window</p>
+        <ol class="steps" id="steps-list">
+          <li><code>glue.init('web')</code><span>Serve your frontend</span></li>
+          <li><code>@glue.expose</code><span>Share Python with JS</span></li>
+          <li><code>glue.start('index.html')</code><span>Open the app</span></li>
+        </ol>
+      </article>
+
+      <article class="panel panel-chrome" data-reveal>
+        <p class="kicker">Familiar chrome · better visuals</p>
+        <h2>Classic menus. Modern surface.</h2>
+        <p class="lede">
+          Build the UI you want in the browser — including the patterns people already know from desktop software.
+        </p>
+
+        <div class="menubar" id="menubar" role="menubar">
+          <div class="menubar__window">
+            <div class="menubar__traffic" aria-hidden="true">
+              <span></span><span></span><span></span>
+            </div>
+            <nav class="menubar__nav">
+              <div class="menu">
+                <button type="button" class="menu__btn" data-menu="file" aria-haspopup="true" aria-expanded="false">File</button>
+                <div class="menu__panel" id="menu-file" hidden>
+                  <button type="button" data-action="new">New Window</button>
+                  <button type="button" data-action="open">Open…</button>
+                  <hr />
+                  <button type="button" data-action="quit">Quit</button>
+                </div>
+              </div>
+              <div class="menu">
+                <button type="button" class="menu__btn" data-menu="edit" aria-haspopup="true" aria-expanded="false">Edit</button>
+                <div class="menu__panel" id="menu-edit" hidden>
+                  <button type="button" data-action="undo">Undo</button>
+                  <button type="button" data-action="copy">Copy</button>
+                  <button type="button" data-action="paste">Paste</button>
+                </div>
+              </div>
+              <div class="menu">
+                <button type="button" class="menu__btn" data-menu="about" aria-haspopup="true" aria-expanded="false">About</button>
+                <div class="menu__panel" id="menu-about" hidden>
+                  <button type="button" data-action="about">About Glue</button>
+                  <button type="button" data-action="docs">Documentation</button>
+                </div>
+              </div>
+            </nav>
+            <div class="menubar__title">Untitled — Glue</div>
+          </div>
+          <p class="menubar__toast" id="menu-toast" aria-live="polite"></p>
+        </div>
+      </article>
+
+      <article class="panel panel-bridge" data-reveal>
+        <p class="kicker">Live round-trip</p>
+        <h2>Frontend talks. Backend answers.</h2>
+        <p class="lede">
+          One decorated Python function. One JavaScript call. Watch the message cross the bridge.
+        </p>
+
+        <div class="bridge" id="bridge" aria-label="Frontend backend demo">
+          <div class="bridge__pane">
+            <header>JavaScript</header>
+            <pre class="bridge__code" id="bridge-js"><code>glue.bridge_echo({
+  message: "hello from the UI"
+})();</code></pre>
+          </div>
+          <div class="bridge__mid">
+            <div class="bridge__wire" aria-hidden="true">
+              <span class="bridge__packet" id="bridge-packet"></span>
+            </div>
+            <p class="bridge__label" id="bridge-label">idle</p>
+          </div>
+          <div class="bridge__pane">
+            <header>Python</header>
+            <pre class="bridge__code" id="bridge-py"><code>@glue.expose
+def bridge_echo(payload):
+    return {
+      "echo": payload["message"],
+      "from": "python",
+    }</code></pre>
+            <pre class="bridge__log" id="bridge-log"><code>waiting…</code></pre>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel panel-simple" data-reveal>
+        <p class="kicker">Why it feels easy</p>
+        <ul class="bullets">
+          <li>
+            <strong>Your stack, unchanged</strong>
+            <span>Design with the web tools you already love.</span>
+          </li>
+          <li>
+            <strong>Python does the hard parts</strong>
+            <span>Files, processes, science libraries — one <code>@glue.expose</code> away.</span>
+          </li>
+          <li>
+            <strong>Ships as a window</strong>
+            <span>Chromium app-mode by default. Package later with PyInstaller.</span>
+          </li>
+        </ul>
+      </article>
+
+      <article class="panel panel-close" data-reveal>
+        <img class="logo logo--sm" src="/logo.png" width="160" height="160" alt="" />
+        <h2>Less framework. More Glue.</h2>
+        <p class="lede">
+          Start with a folder of web files and a short Python script.
+          That is the whole idea.
+        </p>
+        <p class="close-note">Scroll up at the top of this page to return to the cover.</p>
+      </article>
+
+      <div class="story-end-space" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <script type="text/javascript" src="/app.js"></script>
+</body>
+</html>

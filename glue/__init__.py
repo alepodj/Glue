@@ -21,6 +21,8 @@ import importlib_resources
 import socket
 import mimetypes
 
+__version__ = '0.3.9'
+
 
 mimetypes.add_type('application/javascript', '.js')
 

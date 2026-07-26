@@ -17,7 +17,7 @@ A little Python library for making **desktop apps with HTML, CSS, and JavaScript
 
 ### JavaScript calls Python, and Python calls JavaScript — same bridge, both directions.
 
-![Presentation — Frontend ↔ Backend](assets/readme/04-front-to-back.png)
+![Presentation — Frontend ↔ Backend](assets/readme/04-front-to-back.gif)
 
 ### Your technologies stay the same. Python does the hard parts. Ships as an app. Start with a folder of UI files and a short Python script. That is the whole idea.
 
@@ -25,36 +25,33 @@ A little Python library for making **desktop apps with HTML, CSS, and JavaScript
 
 ---
 
-## Install Methods
+## Install
 
-From this repo:
+Glue is not on PyPI yet — install from this repo or GitHub.
+
+From a clone of this repo:
 
 ```shell
 pip install .
 ```
 
-Editable / development:
+Editable / development (code changes apply without reinstalling):
 
 ```shell
 pip install -e .
 ```
 
-Directly from GitHub:
+Directly from GitHub (no local clone required):
 
 ```shell
 pip install "git+https://github.com/alepodj/Glue.git@main"
 ```
 
-Optional Jinja2 templates:
+Optional extras (`.` = the package in the current directory):
 
 ```shell
-pip install ".[jinja2]"
-```
-
-PyInstaller packaging helpers:
-
-```shell
-pip install ".[build]"
+pip install ".[jinja2]"   # Jinja2 templates
+pip install ".[build]"    # PyInstaller for packaging
 ```
 
 ---
@@ -70,7 +67,7 @@ glue.init()
 glue.start('index.html')
 ```
 
-By default Glue opens a **PyWebView** native window. If that isn’t available, it falls back to **Chrome/Chromium** in app mode (`--app`), then **Edge** on Windows only. That is enough to open a desktop window from a folder of UI files.
+Override the folder with `glue.init('web')` (or any path). By default Glue opens a **PyWebView** native window. If that isn’t available, it falls back to **Chrome/Chromium** in app mode (`--app`), then **Edge** on Windows only.
 
 Include the bridge on every page:
 
@@ -119,7 +116,7 @@ n = glue.js_random()()          # wait for the value
 glue.js_random()(print)         # or use a callback
 ```
 
-Complex values travel as JSON over a websocket.
+Complex values travel as JSON over a WebSocket.
 
 If a JS bundler renames functions, expose them with an explicit name:
 
@@ -172,13 +169,13 @@ glue.say_hello_js('Python World!')
 glue.start('hello.html')
 ```
 
-Run `python hello.py`. Calls made before the window opens are queued until the websocket is ready.
+Run `python hello.py`. Calls made before the window opens are queued until the WebSocket is ready.
 
 ---
 
 ## Return values
 
-Python and the browser are separate processes. Glue gives you two ways to get a result back.
+Python and the UI talk over a WebSocket. Glue gives you two ways to get a result back.
 
 **Callback**
 
@@ -208,7 +205,7 @@ Pass keyword arguments to `glue.start()`:
 
 | Option | Default | Notes |
 |--------|---------|--------|
-| `mode` | `'auto'` | `'auto'`, `'webview'`, `'chrome'`, `'edge'`, `'custom'`, or `None`/`False` (no window) |
+| `mode` | `'auto'` | `'auto'`, `'webview'` / `'pywebview'`, `'chrome'`, `'edge'`, `'custom'`, or `None`/`False` (no window) |
 | `host` | `'localhost'` | Bottle bind host |
 | `port` | `8000` | Use `0` to pick automatically |
 | `block` | `True` | Set `False` to keep running your own loop (skips PyWebView in `auto`) |
@@ -249,7 +246,7 @@ Pass keyword arguments to `glue.start()`:
 | `min_size` | PyWebView default | Via `webview_options` — `(width, height)` minimum |
 | `text_select` / `zoomable` / `private_mode` / … | PyWebView defaults | Via `webview_options` — see [PyWebView API](https://pywebview.flowrl.com/guide/api.html) |
 
-Also: Glue sets `SHOW_DEFAULT_MENUS=False` so stock Edit menus stay off unless you build your own.
+Also: Glue sets `SHOW_DEFAULT_MENUS=False` so stock Edit menus stay off unless you build your own. Advanced window control: `glue.get_webview_windows()`.
 
 Examples:
 
@@ -281,22 +278,25 @@ glue.start('index.html', webview_options={'debug': True})
 
 ---
 
-## Window hosts
+## Hosts
 
-Default launch order for `mode='auto'`:
+Not Windows-only — this is **how Glue opens your UI** on any OS.
 
-1. **PyWebView** — native window (all OS); full control via PyWebView APIs / `glue.get_webview_windows()`
-2. **Chrome/Chromium** — app mode (`--app`)
+Default order for `mode='auto'`:
+
+1. **PyWebView** — native window (Windows / macOS / Linux); full control via PyWebView APIs / `glue.get_webview_windows()`
+2. **Chrome/Chromium** — app mode (`--app`) on all platforms
 3. **Edge** — Windows only, if Chrome is missing
 
-PyWebView defaults are documented under [PyWebView options](#pywebview-options) (frameless title bar, menus, resize grips, `debug`, etc.).
+PyWebView defaults are under [PyWebView options](#pywebview-options) (frameless title bar, menus, resize grips, `debug`, etc.).
 
-Other modes:
-
-- **`webview`** / **`pywebview`** — force PyWebView (no browser fallback)
-- **`chrome`** / **`edge`** — force a Chromium browser
-- **`None` / `False`** — server only (tests, custom frontends)
-- **`custom`** — your own command via `cmdline_args`
+| `mode` | Behavior |
+|--------|----------|
+| `'auto'` | PyWebView → Chrome → Edge (Windows); see above |
+| `'webview'` / `'pywebview'` | Force PyWebView (no browser fallback) |
+| `'chrome'` / `'edge'` | Force that Chromium browser |
+| `None` / `False` | Server only (tests, custom frontends) |
+| `'custom'` | Your own command via `cmdline_args` |
 
 Try [`01 - hello_world`](examples/01%20-%20hello_world) for auto launch, or [`02 - hello_world_chrome`](examples/02%20-%20hello_world_chrome) to force Chrome.
 
@@ -330,6 +330,8 @@ while True:
     print("main")
     glue.sleep(1.0)
 ```
+
+With `block=False`, `mode='auto'` skips PyWebView (its GUI loop needs the main thread) and uses Chrome/Edge instead.
 
 ---
 

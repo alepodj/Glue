@@ -142,8 +142,8 @@ def open(start_pages: Iterable[Union[str, Dict[str, str]]], options: OptionsDict
             raise EnvironmentError("Can't find %s installation" % _browser_modules[mode].name)
     else:
         raise ValueError(
-            "Unsupported mode %r. Use 'auto', 'webview', 'chrome', 'edge', "
-            "'custom', None, or False." % (mode,)
+            "Unsupported mode %r. Use 'auto', 'webview'/'pywebview', 'chrome', "
+            "'edge', 'custom', None, or False." % (mode,)
         )
 
 

@@ -1,5 +1,17 @@
 # Change log
 
+### 0.5.0
+
+* **Breaking (default host):** `mode='auto'` prefers **PyWebView** on all platforms for a real desktop window, then falls back to Chrome/Chromium app mode, then Microsoft Edge on Windows only.
+* Add explicit modes `'webview'` / `'pywebview'`; add `title` and `webview_options` on `glue.start()`, plus `glue.get_webview_windows()` for native window control.
+* PyWebView is a runtime dependency (`pywebview>=5.0`) with graceful Chrome/Edge fallback if import or GUI startup fails. `block=False` with `auto` skips PyWebView (GUI loop must own the main thread).
+* Run the Bottle/gevent server in an OS thread when PyWebView is used so the GUI loop does not starve the hub (blank/unresponsive windows).
+* PyWebView defaults: no native app menus, frameless window, OS-styled in-page title bar (Windows / macOS / Linux) with working min/max/close via `webview_minimize` / `webview_toggle_maximize` / `webview_close`. Pass `webview_options={'frameless': False}` for native OS chrome.
+* Add `resizable=` on `glue.start()` (default `True`) for PyWebView window resizing; override with `resizable=False` or `webview_options={'resizable': False}`.
+* Frameless Windows: install edge/corner resize grips that drive native Win32 resize (`webview_start_resize`) — PyWebView alone does not resize frameless windows on Windows.
+* Title bar shows `favicon.ico` (or `<link rel="icon">`) next to the title when present; PyWebView `icon=` is set from `ui/favicon.ico` when available.
+* Frameless title bar is treated as non-client chrome: window height grows by the bar, content is inset (`padding-top`) so `size=` stays content pixels and the bar does not cover the UI.
+
 ### 0.4.0
 
 * **Breaking:** Default frontend folder is `ui/` (was the `web/` convention). `glue.init()` now defaults to `path='ui'`; pass another path to override (e.g. CRA `build` / `src`).

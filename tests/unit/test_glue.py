@@ -71,6 +71,83 @@ def test_auto_browser_order(monkeypatch):
     assert browsers._auto_browser_order() == ['chrome']
 
 
+def test_auto_tries_webview_before_browsers(monkeypatch):
+    calls = []
+
+    monkeypatch.setattr(browsers.webview_host, 'should_try', lambda _opts: True)
+
+    def fake_webview(options, start_urls, *, required):
+        calls.append(('webview', required))
+        browsers._webview_session_completed = True
+        return 'completed'
+
+    def boom(*_a, **_k):
+        raise AssertionError('browser should not launch when webview succeeds')
+
+    monkeypatch.setattr(browsers, '_open_webview', fake_webview)
+    monkeypatch.setattr(browsers, '_run_browser', boom)
+    browsers.open(
+        ['index.html'],
+        {'mode': 'auto', 'host': 'localhost', 'port': 8000, 'block': True},
+    )
+    assert calls == [('webview', False)]
+    assert browsers.webview_session_completed() is True
+
+
+def test_auto_falls_back_when_webview_unavailable(monkeypatch):
+    calls = []
+
+    monkeypatch.setattr(browsers.webview_host, 'should_try', lambda _opts: True)
+    monkeypatch.setattr(
+        browsers,
+        '_open_webview',
+        lambda *_a, **_k: 'unavailable',
+    )
+    monkeypatch.setattr(browsers, 'is_windows', lambda: True)
+
+    def fake_run(name, options, start_urls):
+        calls.append(name)
+        return name == 'chrome'
+
+    monkeypatch.setattr(browsers, '_run_browser', fake_run)
+    browsers.open(
+        ['index.html'],
+        {'mode': 'auto', 'host': 'localhost', 'port': 8000, 'block': True},
+    )
+    assert calls == ['chrome']
+
+
+def test_auto_skips_webview_when_not_blocking(monkeypatch):
+    calls = []
+
+    def boom_webview(*_a, **_k):
+        raise AssertionError('webview should be skipped when block=False')
+
+    monkeypatch.setattr(browsers.webview_host, 'should_try', lambda opts: False)
+    monkeypatch.setattr(browsers, '_open_webview', boom_webview)
+    monkeypatch.setattr(browsers, 'is_windows', lambda: False)
+
+    def fake_run(name, options, start_urls):
+        calls.append(name)
+        return True
+
+    monkeypatch.setattr(browsers, '_run_browser', fake_run)
+    browsers.open(
+        ['index.html'],
+        {'mode': 'auto', 'host': 'localhost', 'port': 8000, 'block': False},
+    )
+    assert calls == ['chrome']
+
+
+def test_webview_mode_requires_block(monkeypatch):
+    monkeypatch.setattr(browsers.webview_host, 'available', lambda: True)
+    with pytest.raises(ValueError, match='block=True'):
+        browsers.open(
+            ['index.html'],
+            {'mode': 'webview', 'host': 'localhost', 'port': 8000, 'block': False},
+        )
+
+
 def test_open_mode_none_does_not_launch(monkeypatch):
     launched = []
 
@@ -80,6 +157,7 @@ def test_open_mode_none_does_not_launch(monkeypatch):
 
     monkeypatch.setattr(browsers, '_open_auto', boom)
     monkeypatch.setattr(browsers, '_run_browser', boom)
+    monkeypatch.setattr(browsers, '_open_webview', boom)
     browsers.open(['index.html'], {'mode': None, 'host': 'localhost', 'port': 8000})
     browsers.open(['index.html'], {'mode': False, 'host': 'localhost', 'port': 8000})
     assert launched == []
@@ -88,3 +166,48 @@ def test_open_mode_none_does_not_launch(monkeypatch):
 def test_open_unsupported_mode():
     with pytest.raises(ValueError, match='Unsupported mode'):
         browsers.open(['index.html'], {'mode': 'firefox', 'host': 'localhost', 'port': 8000})
+
+
+def test_webview_geometry_kwargs():
+    import glue.webview_host as webview_host
+
+    kwargs = webview_host._geometry_kwargs(
+        'http://localhost:8000/hello.html',
+        {
+            'size': (1280, 720),
+            'position': (10, 20),
+            'geometry': {
+                'hello.html': {'size': (640, 480), 'position': (1, 2)},
+            },
+        },
+    )
+    assert kwargs == {'width': 640, 'height': 480, 'x': 1, 'y': 2}
+
+
+def test_webview_create_defaults_are_frameless():
+    import glue.webview_host as webview_host
+
+    defaults = webview_host._glue_create_defaults()
+    assert defaults['frameless'] is True
+    assert defaults['easy_drag'] is False
+    assert defaults['resizable'] is True
+    assert webview_host._glue_create_defaults({'resizable': False})['resizable'] is False
+
+
+def test_webview_titlebar_heights():
+    import glue.webview_host as webview_host
+
+    assert webview_host.titlebar_height('windows') == 36
+    assert webview_host.titlebar_height('macos') == 38
+    assert webview_host.titlebar_height('linux') == 40
+
+
+def test_webview_platform_name(monkeypatch):
+    import glue.webview_host as webview_host
+
+    monkeypatch.setattr(webview_host.sys, 'platform', 'win32')
+    assert webview_host.platform_name() == 'windows'
+    monkeypatch.setattr(webview_host.sys, 'platform', 'darwin')
+    assert webview_host.platform_name() == 'macos'
+    monkeypatch.setattr(webview_host.sys, 'platform', 'linux')
+    assert webview_host.platform_name() == 'linux'

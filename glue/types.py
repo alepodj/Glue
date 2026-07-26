@@ -42,6 +42,9 @@ OptionsDictT = TypedDict(
         'app': Bottle,
         'shutdown_delay': float,
         'jinja_env': JinjaEnvironmentT,
+        'title': Optional[str],
+        'resizable': bool,
+        'webview_options': Dict[str, Any],
     },
     total=False
 )

@@ -6,7 +6,7 @@ with open('README.md') as read_me:
 
 setup(
     name='Glue',
-    version='0.4.0',
+    version='0.5.0',
     author='alepodj',
     url='https://github.com/alepodj/Glue',
     packages=['glue'],
@@ -21,6 +21,7 @@ setup(
         'pyparsing>=3.0.0,<4.0.0',
         'typing_extensions>=4.3.0',
         'importlib_resources>=1.3',
+        'pywebview>=5.0',
     ],
     extras_require={
         'jinja2': ['jinja2>=2.10'],
@@ -30,7 +31,7 @@ setup(
     description='For little HTML GUI applications, with easy Python/JS interop',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    keywords=['gui', 'html', 'javascript', 'desktop', 'chrome', 'edge'],
+    keywords=['gui', 'html', 'javascript', 'desktop', 'pywebview', 'chrome', 'edge'],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Natural Language :: English',

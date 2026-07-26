@@ -29,5 +29,5 @@ import glue
 
 **Desktop (please complete the following information):**
  - OS: [e.g. Windows 11, macOS 14, Ubuntu 24.04]
- - Browser [e.g. Edge, Chrome — Chromium-family only]
+ - Window host [e.g. PyWebView, Chrome, Edge]
  - Glue / Python version [e.g. Glue 0.3.1 / Python 3.12]

@@ -360,9 +360,9 @@ glue.expose(bridge_on_js);
   document.addEventListener('click', () => closeAllMenus());
 
   /* —— Two bridge flows (Front→Back, Back→Front) —— */
-  const PACKET_MS = 1.35;
-  const STEP_PAUSE_MS = 1400;
-  const CYCLE_PAUSE_MS = 3200;
+  const PACKET_MS = 2.4;
+  const STEP_PAUSE_MS = 2400;
+  const CYCLE_PAUSE_MS = 4200;
   const f2bMessages = [
     'hello from the UI',
     'save this document',
@@ -388,12 +388,7 @@ glue.expose(bridge_on_js);
 
   function formatLogText(value) {
     if (typeof value === 'string') return value;
-    let text = JSON.stringify(value, null, 2);
-    const lines = text.split('\n');
-    if (lines.length > 6) {
-      text = lines.slice(0, 5).join('\n') + '\n…';
-    }
-    return text;
+    return JSON.stringify(value, null, 2);
   }
 
   function setLog(el, value) {
@@ -405,21 +400,21 @@ glue.expose(bridge_on_js);
     gsap.to(code, {
       opacity: 0,
       y: 4,
-      duration: 0.28,
+      duration: 0.35,
       ease: 'power2.in',
       onComplete: () => {
         code.textContent = text;
         gsap.fromTo(
           code,
           { opacity: 0, y: -4 },
-          { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }
+          { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }
         );
       },
     });
     gsap.fromTo(
       el,
       { backgroundColor: 'rgba(62,200,255,0.12)' },
-      { backgroundColor: 'rgba(0,40,50,0.25)', duration: 1.4, ease: 'sine.out', overwrite: true }
+      { backgroundColor: 'rgba(0,40,50,0.25)', duration: 1.8, ease: 'sine.out', overwrite: true }
     );
   }
 
@@ -430,14 +425,14 @@ glue.expose(bridge_on_js);
     gsap.to(el, {
       opacity: 0,
       y: 3,
-      duration: 0.22,
+      duration: 0.3,
       ease: 'power2.in',
       onComplete: () => {
         el.textContent = text;
         gsap.fromTo(
           el,
           { opacity: 0, y: -3 },
-          { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' }
+          { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out' }
         );
       },
     });
@@ -476,16 +471,15 @@ glue.expose(bridge_on_js);
 
     flow.classList.add('is-playing');
     setActive(flow, 'left');
-    setLabel(label, 'sending');
+    setLabel(label, 'bridge_echo');
     setLog(logJs, { call: 'bridge_echo', message });
     setLog(logPy, '…');
     await sleep(STEP_PAUSE_MS);
 
-    setLabel(label, 'Front → Back');
     await animatePacket(packet, true);
 
     setActive(flow, 'right');
-    setLabel(label, 'Python running');
+    setLabel(label, 'running');
     let result;
     try {
       result = await glue.bridge_echo({ message })();
@@ -495,14 +489,14 @@ glue.expose(bridge_on_js);
     setLog(logPy, result);
     await sleep(STEP_PAUSE_MS);
 
-    setLabel(label, 'return value');
+    setLabel(label, 'return');
     await animatePacket(packet, false);
     setActive(flow, 'left');
     setLog(logJs, { received: result });
-    setLabel(label, 'Front → Back · done');
+    setLabel(label, 'done');
     await sleep(STEP_PAUSE_MS);
 
-    gsap.to(packet, { opacity: 0, duration: 0.35 });
+    gsap.to(packet, { opacity: 0, duration: 0.45 });
     clearActive(flow);
     flow.classList.remove('is-playing');
     setLabel(label, 'idle');
@@ -519,16 +513,15 @@ glue.expose(bridge_on_js);
 
     flow.classList.add('is-playing');
     setActive(flow, 'left');
-    setLabel(label, 'sending');
+    setLabel(label, 'bridge_on_js');
     setLog(logPy, { call: 'bridge_on_js', message });
     setLog(logJs, '…');
     await sleep(STEP_PAUSE_MS);
 
-    setLabel(label, 'Back → Front');
     await animatePacket(packet, true);
 
     setActive(flow, 'right');
-    setLabel(label, 'JavaScript running');
+    setLabel(label, 'running');
     let result;
     try {
       result = await glue.bridge_call_js({ message })();
@@ -539,14 +532,14 @@ glue.expose(bridge_on_js);
     setLog(logJs, jsReply);
     await sleep(STEP_PAUSE_MS);
 
-    setLabel(label, 'return value');
+    setLabel(label, 'return');
     await animatePacket(packet, false);
     setActive(flow, 'left');
     setLog(logPy, { received: jsReply });
-    setLabel(label, 'Back → Front · done');
+    setLabel(label, 'done');
     await sleep(STEP_PAUSE_MS);
 
-    gsap.to(packet, { opacity: 0, duration: 0.35 });
+    gsap.to(packet, { opacity: 0, duration: 0.45 });
     clearActive(flow);
     flow.classList.remove('is-playing');
     setLabel(label, 'idle');
@@ -572,9 +565,9 @@ glue.expose(bridge_on_js);
       }
     };
 
-    // Run both directions in parallel; offset the second so they don't lock step
+    // Same timing, both directions at once
     loopF2b();
-    b2fTimer = window.setTimeout(loopB2f, 1800);
+    loopB2f();
   }
 
   function stopBridgeLoop() {

@@ -25,7 +25,7 @@ A clear and concise description of what you expected to happen.
 
 **System Information**
  - OS: [e.g. Windows 10 x64, Linux Ubuntu, macOS 12]
- - Browser: [e.g. Edge 120, Chrome 120 — Chromium-family only; Glue does not launch Safari/Firefox]
+ - Window host: [e.g. PyWebView / WebView2, Chrome 120, Edge 120]
  - Python Distribution: [e.g. Python.org 3.12, Anaconda 3.11]
 
 **Screenshots**

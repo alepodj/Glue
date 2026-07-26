@@ -20,8 +20,10 @@ import sys
 import importlib_resources
 import socket
 import mimetypes
+import threading
+import time
 
-__version__ = '0.4.0'
+__version__ = '0.5.0'
 
 
 mimetypes.add_type('application/javascript', '.js')
@@ -197,7 +199,10 @@ def start(
         disable_cache: bool = True,
         default_path: str = 'index.html',
         app: Optional[btl.Bottle] = None,
-        shutdown_delay: float = 1.0) -> None:
+        shutdown_delay: float = 1.0,
+        title: Optional[str] = None,
+        resizable: bool = True,
+        webview_options: Optional[Dict[str, Any]] = None) -> None:
     '''Start the Glue app.
 
     Suppose you put all the frontend files in a directory called
@@ -211,23 +216,27 @@ def start(
         glue.start('main.html')
 
     This will start a webserver on the default settings
-    (http://localhost:8000) and open a browser to
+    (http://localhost:8000) and open a native window (or browser) to
     http://localhost:8000/main.html.
 
-    By default (:code:`mode='auto'`), Glue opens a Chromium-based browser in
-    *App Mode* (:code:`--app`): Google Chrome/Chromium when available, otherwise
-    Microsoft Edge on Windows only. On macOS/Linux, Chrome/Chromium is required.
+    By default (:code:`mode='auto'`), Glue prefers **PyWebView** for a real
+    desktop window (menus, minimize/maximize/close under your control), then
+    falls back to Chrome/Chromium in app mode, then Microsoft Edge on Windows
+    only. Use :code:`block=False` with :code:`mode='auto'` to skip PyWebView
+    (its GUI loop must own the main thread) and launch Chrome/Edge instead.
 
-    :param mode: Browser selection. :code:`'auto'` (default) picks Chrome/
-        Chromium first, then Edge on Windows if Chrome is missing. Force
-        :code:`'chrome'` or :code:`'edge'`, use :code:`'custom'` with
-        :code:`cmdline_args`, or :code:`None` / :code:`False` for no window.
+    :param mode: Window host selection. :code:`'auto'` (default) tries
+        PyWebView, then Chrome/Chromium, then Edge on Windows. Force
+        :code:`'webview'` (alias :code:`'pywebview'`), :code:`'chrome'`, or
+        :code:`'edge'`; use :code:`'custom'` with :code:`cmdline_args`; or
+        :code:`None` / :code:`False` for no window.
     :param host: Hostname used for Bottle server. *Default:*
         :code:`'localhost'`.
     :param port: Port used for Bottle server. Use :code:`0` for port to be
         picked automatically. *Default:* :code:`8000`.
     :param block: Whether the call to :func:`start()` blocks the calling
-        thread. *Default:* `True`.
+        thread. *Default:* `True`. PyWebView requires :code:`True` when used
+        as the window host.
     :param jinja_templates: Folder for :mod:`jinja2` templates, e.g.
         :file:`my_templates`. *Default:* `None`.
     :param cmdline_args: A list of strings to pass to the command starting the
@@ -250,7 +259,7 @@ def start(
         just closed, and a list of the other websockets that are still open.
         *Default:* `None`.
     :param app_mode: Whether to run Edge/Chrome in App Mode (:code:`--app`).
-        *Default:* :code:`True`.
+        *Default:* :code:`True`. Ignored for PyWebView.
     :param all_interfaces: Whether to allow the :mod:`bottle` server to listen
         for connections on all interfaces (:code:`0.0.0.0`). **Warning:** any
         client that can reach this host can invoke every :func:`expose`d Python
@@ -270,11 +279,26 @@ def start(
         seconds, and then checks if there are now any websocket connections.
         If not, then Glue closes. In case the user has closed the browser and
         wants to exit the program. *Default:* :code:`1.0` seconds.
+    :param title: Native window title when using PyWebView. *Default:*
+        :code:`'Glue'` (via PyWebView). Ignored for Chrome/Edge (page
+        ``<title>`` applies).
+    :param resizable: Whether the user can resize the window (PyWebView).
+        *Default:* :code:`True`. Ignored for Chrome/Edge app windows unless
+        you pass matching browser flags yourself.
+    :param webview_options: Extra keyword arguments forwarded to PyWebView
+        (:func:`webview.create_window` and/or :func:`webview.start`), e.g.
+        :code:`frameless`, :code:`menu`, :code:`debug`, :code:`gui`.
+        Glue defaults to frameless windows with no native menus and an
+        OS-styled in-page title bar (override with
+        :code:`frameless=False` for native OS chrome). *Default:*
+        :code:`None`.
     '''
     if cmdline_args is None:
         cmdline_args = list(_DEFAULT_CMDLINE_ARGS)
     if geometry is None:
         geometry = {}
+    if webview_options is None:
+        webview_options = {}
     if app is None:
         app = btl.default_app()
 
@@ -297,6 +321,9 @@ def start(
         'size': size,
         'position': position,
         'geometry': geometry,
+        'title': title,
+        'resizable': resizable,
+        'webview_options': webview_options,
         'close_callback': close_callback,
         'app_mode': app_mode,
         'all_interfaces': all_interfaces,
@@ -351,8 +378,15 @@ def start(
             quiet=True,
             app=app)  # Always returns None
 
-    def _wait_for_server() -> None:
-        """Wait until the server is accepting connections, then open the browser."""
+    def _wait_for_server(*, cooperative: bool = True) -> None:
+        """Wait until the server is accepting connections, then open the window.
+
+        When the Bottle server runs as a gevent greenlet on this hub, use
+        cooperative :func:`gevent.sleep` so the server can accept during the
+        wait. When it runs in another OS thread (PyWebView), use
+        :func:`time.sleep` so we do not depend on this thread's hub.
+        """
+        sleep = gvt.sleep if cooperative else time.sleep
         host = _start_args['host'] if not _start_args['all_interfaces'] else '127.0.0.1'
         if not isinstance(host, str):
             host = '127.0.0.1'
@@ -372,7 +406,7 @@ def start(
                 ready = True
                 break
             except OSError:
-                gvt.sleep(0.05)
+                sleep(0.05)
         if not ready:
             raise RuntimeError(
                 'Glue server did not become ready on %s:%s '
@@ -380,11 +414,47 @@ def start(
             )
         show(*start_urls)
 
-    # Start the webserver first, then open browser once listening (avoids race on load)
-    server_greenlet = spawn(run_lambda)
-    _wait_for_server()
-    if _start_args['block']:
-        server_greenlet.join()
+    def _should_run_server_in_thread() -> bool:
+        """PyWebView blocks the main thread; a gevent server greenlet would starve."""
+        mode = _start_args.get('mode')
+        if mode in brw.WEBVIEW_MODES:
+            return bool(_start_args.get('block', True))
+        if mode == 'auto':
+            import glue.webview_host as webview_host
+            return webview_host.should_try(_start_args)
+        return False
+
+    # Start the webserver first, then open the window once listening (avoids race).
+    # PyWebView's GUI loop blocks the main thread, so the Bottle server must run
+    # in a real OS thread in that case — not a greenlet on the same hub.
+    if _should_run_server_in_thread():
+        server_thread = threading.Thread(
+            target=run_lambda, name='glue-bottle', daemon=True)
+        server_thread.start()
+        _wait_for_server(cooperative=False)
+        # GUI closed: exit so we do not hang joining a daemon server thread.
+        if brw.webview_session_completed():
+            sys.exit(0)
+        if _start_args['block']:
+            # PyWebView failed over to Chrome/Edge; wait until websockets exit.
+            server_thread.join()
+    else:
+        server_greenlet = spawn(run_lambda)
+        _wait_for_server(cooperative=True)
+        if brw.webview_session_completed():
+            sys.exit(0)
+        if _start_args['block']:
+            server_greenlet.join()
+
+
+def get_webview_windows() -> List[Any]:
+    '''Return PyWebView window instances for the current Glue session.
+
+    Empty when Chrome/Edge (or no window) is used. Useful for menus, title,
+    and other native window control via the PyWebView API.
+    '''
+    import glue.webview_host as webview_host
+    return webview_host.get_windows()
 
 
 def show(*start_urls: str) -> None:
@@ -465,10 +535,13 @@ def _glue() -> str:
                                   'position': _start_args['position']},
                       'pages':   _start_args['geometry']}
 
+    import glue.webview_host as webview_host
     page = _glue_js.replace('/** _py_functions **/',
                            '_py_functions: %s,' % list(_exposed_functions.keys()))
     page = page.replace('/** _start_geometry **/',
                         '_start_geometry: %s,' % _safe_json(start_geometry))
+    page = page.replace('/** _webview **/',
+                        '_webview: %s,' % _safe_json(webview_host.chrome_config()))
     btl.response.content_type = 'application/javascript'
     _set_response_headers(btl.response)
     return page

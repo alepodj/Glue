@@ -6,6 +6,7 @@ from types import ModuleType
 from glue.types import OptionsDictT
 import glue.chrome as chm
 import glue.edge as edge
+import glue.webview_host as webview_host
 from glue.chromium import is_windows
 
 _browser_paths: Dict[str, str] = {}
@@ -13,6 +14,16 @@ _browser_modules: Dict[str, ModuleType] = {
     'chrome': chm,
     'edge': edge,
 }
+
+WEBVIEW_MODES = frozenset({'webview', 'pywebview'})
+
+# Set when PyWebView's primary GUI loop has returned (all windows closed).
+# ``glue.start`` uses this to exit cleanly instead of joining the server forever.
+_webview_session_completed: bool = False
+
+
+def webview_session_completed() -> bool:
+    return _webview_session_completed
 
 
 def _build_url_from_dict(page: Dict[str, str], options: OptionsDictT) -> str:
@@ -71,23 +82,42 @@ def _auto_browser_order() -> List[str]:
     return ['chrome']
 
 
+def _open_webview(options: OptionsDictT, start_urls: List[str], *, required: bool) -> str:
+    """Launch via PyWebView. Returns webview_host.open_urls status string."""
+    global _webview_session_completed
+    result = webview_host.open_urls(options, start_urls, required=required)
+    if result == 'completed':
+        _webview_session_completed = True
+    return result
+
+
 def _open_auto(options: OptionsDictT, start_urls: List[str]) -> None:
+    # PyWebView (all OS) → Chrome (all OS) → Edge (Windows only)
+    if webview_host.should_try(options):
+        result = _open_webview(options, start_urls, required=False)
+        if result in ('completed', 'shown'):
+            return
+
     tried = _auto_browser_order()
     for browser_name in tried:
         if _run_browser(browser_name, options, start_urls):
             return
     if is_windows():
         raise EnvironmentError(
-            "Can't find Google Chrome/Chromium or Microsoft Edge. "
-            "Install Chrome/Chromium (preferred) or Edge."
+            "Can't find PyWebView, Google Chrome/Chromium, or Microsoft Edge. "
+            "Install pywebview (preferred), Chrome/Chromium, or Edge."
         )
     raise EnvironmentError(
-        "Can't find Google Chrome/Chromium. "
-        "Install Chrome or Chromium to run Glue apps on this platform."
+        "Can't find PyWebView or Google Chrome/Chromium. "
+        "Install pywebview (preferred) or Chrome/Chromium to run Glue apps "
+        "on this platform."
     )
 
 
 def open(start_pages: Iterable[Union[str, Dict[str, str]]], options: OptionsDictT) -> None:
+    global _webview_session_completed
+    if not webview_host.is_gui_loop_active():
+        _webview_session_completed = False
     # Build full URLs for starting pages (including host and port)
     start_urls = _build_urls(start_pages, options)
 
@@ -99,6 +129,8 @@ def open(start_pages: Iterable[Union[str, Dict[str, str]]], options: OptionsDict
         pass
     elif mode == 'auto':
         _open_auto(options, start_urls)
+    elif mode in WEBVIEW_MODES:
+        _open_webview(options, start_urls, required=True)
     elif mode == 'custom':
         # Advanced escape hatch: run whatever command the user provided
         if not isinstance(options['cmdline_args'], list):
@@ -110,8 +142,8 @@ def open(start_pages: Iterable[Union[str, Dict[str, str]]], options: OptionsDict
             raise EnvironmentError("Can't find %s installation" % _browser_modules[mode].name)
     else:
         raise ValueError(
-            "Unsupported mode %r. Use 'auto', 'chrome', 'edge', 'custom', None, or False."
-            % (mode,)
+            "Unsupported mode %r. Use 'auto', 'webview', 'chrome', 'edge', "
+            "'custom', None, or False." % (mode,)
         )
 
 

@@ -17,7 +17,7 @@ A little Python library for making **desktop apps with HTML, CSS, and JavaScript
 
 ### JavaScript calls Python, and Python calls JavaScript — same bridge, both directions.
 
-![Presentation — Frontend ↔ Backend](assets/readme/04-front-to-back.gif)
+![Presentation — Frontend ↔ Backend](assets/readme/04-front-to-back.png)
 
 ### Your technologies stay the same. Python does the hard parts. Ships as an app. Start with a folder of UI files and a short Python script. That is the whole idea.
 

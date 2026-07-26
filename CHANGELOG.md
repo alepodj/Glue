@@ -1,5 +1,9 @@
 # Change log
 
+### 0.5.6
+
+* Fix Windows `pip install` from GitHub: `setup.py` now reads the README as UTF-8 so install no longer fails on non-ASCII characters.
+
 ### 0.5.5
 
 * Rename `webview.chrome_config()` → `webview.titlebar_config()` (in-page title bar payload for `glue.js`; avoids “Chrome browser” confusion).

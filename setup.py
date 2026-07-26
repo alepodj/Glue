@@ -1,12 +1,11 @@
-from io import open
 from setuptools import setup
 
-with open('README.md') as read_me:
+with open('README.md', encoding='utf-8') as read_me:
     long_description = read_me.read()
 
 setup(
     name='Glue',
-    version='0.5.5',
+    version='0.5.6',
     author='alepodj',
     url='https://github.com/alepodj/Glue',
     packages=['glue'],

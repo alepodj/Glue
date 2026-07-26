@@ -1,27 +1,29 @@
 # Glue
 <sub>Glue is a fork of [Eel](https://github.com/python-eel/Eel) by Chris Knott and contributors.</sub>
 
+A little and opinionated Python library for making **desktop apps with HTML, CSS, and JavaScript** — plus full access to Python. It hosts a local window, then lets Python and JavaScript call each other. No new UI framework.
+
 ![Presentation — cover](assets/readme/01-cover.png)
-
-A little Python library for making **desktop apps with HTML, CSS, and JavaScript** — plus full access to Python. It hosts a local window, then lets Python and JavaScript call each other. No Electron ceremony. No new UI framework.
-
----
-
-### If you already speak the web, you already speak desktop. The simplest Glue app is three lines of Python.
-
 ![Presentation — pitch and simplest app](assets/readme/02-pitch.png)
-
-### Classic desktop app you can build yourself — Windows, macOS, and Linux styles.
-
 ![Presentation — familiar window](assets/readme/03-window.png)
-
-### JavaScript calls Python, and Python calls JavaScript — same bridge, both directions.
-
 ![Presentation — Frontend ↔ Backend](assets/readme/04-front-to-back.png)
-
-### Your technologies stay the same. Python does the hard parts. Ships as an app. Start with a folder of UI files and a short Python script. That is the whole idea.
-
 ![Presentation — why it feels easy](assets/readme/05-why.png)
+
+## Contents
+
+- [Install](#install)
+- [Quick start](#quick-start)
+- [Demo](#demo)
+- [Call both ways](#call-both-ways)
+- [Hello, World!](#hello-world)
+- [Return values](#return-values)
+- [Settings](#settings)
+- [App options](#app-options)
+- [Hosts](#hosts)
+- [Async Python](#async-python)
+- [Package with PyInstaller](#package-with-pyinstaller)
+- [Examples](#examples)
+- [Project layout for an app](#project-layout-for-an-app)
 
 ---
 

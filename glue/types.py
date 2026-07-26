@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Union, Dict, List, Tuple, Callable, Optional, Any, TYPE_CHECKING
-from typing_extensions import Literal, TypedDict, TypeAlias
+from typing_extensions import TypedDict, TypeAlias
 from bottle import Bottle
 
 # This business is slightly awkward, but needed for backward compatibility,
@@ -25,7 +25,7 @@ class WindowGeometryT(TypedDict, total=False):
 OptionsDictT = TypedDict(
     'OptionsDictT',
     {
-        'mode': Optional[Union[str, Literal[False]]],
+        'mode': Optional[str],
         'host': str,
         'port': int,
         'block': bool,

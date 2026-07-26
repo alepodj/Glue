@@ -15,7 +15,7 @@ _browser_modules: Dict[str, ModuleType] = {
     'edge': edge,
 }
 
-WEBVIEW_MODES = frozenset({'webview', 'pywebview'})
+WEBVIEW_MODES = frozenset({'webview'})
 
 # Set when PyWebView's primary GUI loop has returned (all windows closed).
 # ``glue.start`` uses this to exit cleanly instead of joining the server forever.
@@ -122,9 +122,9 @@ def open(start_pages: Iterable[Union[str, Dict[str, str]]], options: OptionsDict
     start_urls = _build_urls(start_pages, options)
 
     mode = options.get('mode')
-    if not isinstance(mode, (str, type(None))) and mode is not False:
-        raise TypeError("'mode' option must by either a string, False, or None")
-    if mode is None or mode is False:
+    if mode is not None and not isinstance(mode, str):
+        raise TypeError("'mode' option must be a string or None")
+    if mode is None:
         # Don't open a browser (server-only / tests)
         pass
     elif mode == 'auto':
@@ -142,8 +142,8 @@ def open(start_pages: Iterable[Union[str, Dict[str, str]]], options: OptionsDict
             raise EnvironmentError("Can't find %s installation" % _browser_modules[mode].name)
     else:
         raise ValueError(
-            "Unsupported mode %r. Use 'auto', 'webview'/'pywebview', 'chrome', "
-            "'edge', 'custom', None, or False." % (mode,)
+            "Unsupported mode %r. Use 'auto', 'webview', 'chrome', "
+            "'edge', 'custom', or None." % (mode,)
         )
 
 

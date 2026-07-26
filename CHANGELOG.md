@@ -1,5 +1,14 @@
 # Change log
 
+### 0.5.7
+
+* Promote common PyWebView window knobs to first-class `glue.start()` kwargs (`frameless`, `easy_drag`, `shadow`, `debug`, `confirm_close`, `fullscreen` / `minimized` / `maximized` / `on_top`, `min_size`, `icon`, `gui`, `menu`). Explicit values win over the same key in `webview_options=`; unset (`None`) keeps prior Glue defaults. `webview_options` remains the escape hatch for the long tail.
+* Default window `size` when omitted is **1280×720** for every host: stored in `_start_args` so Chrome/Edge get it through `/glue.js` `resizeTo` (Eel’s original path), and PyWebView no longer falls through to 800×600.
+* README: one `glue.start()` options table with **Source** (Glue / PyWebView / both) and **Hosts** columns.
+* Require `pywebview>=6.0` (development and testing have been on 6.2.x).
+* Mode name is only `'webview'` (dropped the `'pywebview'` alias).
+* Server-only mode is `mode=None` only (dropped the `False` alias).
+
 ### 0.5.6
 
 * Fix Windows `pip install` from GitHub: `setup.py` now reads the README as UTF-8 so install no longer fails on non-ASCII characters.

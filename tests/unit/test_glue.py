@@ -159,7 +159,6 @@ def test_open_mode_none_does_not_launch(monkeypatch):
     monkeypatch.setattr(browsers, '_run_browser', boom)
     monkeypatch.setattr(browsers, '_open_webview', boom)
     browsers.open(['index.html'], {'mode': None, 'host': 'localhost', 'port': 8000})
-    browsers.open(['index.html'], {'mode': False, 'host': 'localhost', 'port': 8000})
     assert launched == []
 
 
@@ -182,6 +181,52 @@ def test_webview_geometry_kwargs():
         },
     )
     assert kwargs == {'width': 640, 'height': 480, 'x': 1, 'y': 2}
+
+
+def test_webview_default_size_when_size_none():
+    import glue.webview as webview
+
+    kwargs = webview._geometry_kwargs(
+        'http://localhost:8000/index.html',
+        {'size': None, 'position': None, 'geometry': {}},
+    )
+    assert kwargs == {'width': 1280, 'height': 720}
+
+
+def test_glue_js_start_geometry_defaults_size():
+    """Chrome/Edge path: omitted size must not be null in _start_geometry."""
+    import glue
+    import glue.webview as webview
+
+    prev = dict(glue._start_args)
+    try:
+        glue._start_args.update({
+            'size': None,
+            'position': None,
+            'geometry': {},
+            'disable_cache': False,
+        })
+        js = glue._glue()
+        assert '"size": [1280, 720]' in js
+        assert webview.DEFAULT_WINDOW_SIZE == (1280, 720)
+    finally:
+        glue._start_args.clear()
+        glue._start_args.update(prev)
+
+
+def test_merge_webview_options_first_class_wins():
+    import glue
+
+    merged = glue._merge_webview_options(
+        {'frameless': True, 'debug': False, 'private_mode': True},
+        frameless=False,
+        debug=True,
+        gui=None,
+    )
+    assert merged['frameless'] is False
+    assert merged['debug'] is True
+    assert merged['private_mode'] is True
+    assert 'gui' not in merged
 
 
 def test_webview_create_defaults_are_frameless():

@@ -5,7 +5,7 @@ with open('README.md', encoding='utf-8') as read_me:
 
 setup(
     name='Glue',
-    version='0.5.6',
+    version='0.5.7',
     author='alepodj',
     url='https://github.com/alepodj/Glue',
     packages=['glue'],
@@ -20,7 +20,7 @@ setup(
         'pyparsing>=3.0.0,<4.0.0',
         'typing_extensions>=4.3.0',
         'importlib_resources>=1.3',
-        'pywebview>=5.0',
+        'pywebview>=6.0',
     ],
     extras_require={
         'jinja2': ['jinja2>=2.10'],

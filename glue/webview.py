@@ -95,9 +95,15 @@ def _page_key(url: str) -> str:
     return urlparse(url).path.lstrip('/')
 
 
+# Content size when ``glue.start(..., size=None)``. Applied in ``start()`` so
+# ``/glue.js`` ``_start_geometry`` (Chrome/Edge ``resizeTo``) and PyWebView
+# ``create_window`` share one default. Examples use the same tuple.
+DEFAULT_WINDOW_SIZE = (1280, 720)
+
+
 def _geometry_kwargs(url: str, options: OptionsDictT) -> Dict[str, Any]:
     """Map Glue size/position/geometry onto create_window kwargs."""
-    width, height = 800, 600
+    width, height = DEFAULT_WINDOW_SIZE
     x: Optional[int] = None
     y: Optional[int] = None
 

@@ -2,7 +2,6 @@ from __future__ import annotations
 import traceback
 import warnings
 from typing import Union, Any, Dict, List, Set, Tuple, Optional, Callable
-from typing_extensions import Literal
 from glue.types import OptionsDictT, WebSocketT, WindowGeometryT
 import gevent as gvt
 import json as jsn
@@ -24,7 +23,7 @@ import mimetypes
 import threading
 import time
 
-__version__ = '0.5.6'
+__version__ = '0.5.7'
 
 
 mimetypes.add_type('application/javascript', '.js')
@@ -53,6 +52,17 @@ _js_result_timeout: int = 10000
 
 # Attribute holding the start args from calls to glue.start()
 _start_args: OptionsDictT = {}
+
+
+def _merge_webview_options(
+        base: Optional[Dict[str, Any]],
+        **first_class: Any) -> Dict[str, Any]:
+    """Merge escape-hatch dict with first-class kwargs (explicit values win)."""
+    merged = dict(base or {})
+    for key, value in first_class.items():
+        if value is not None:
+            merged[key] = value
+    return merged
 
 _DEFAULT_ALLOWED_EXTENSIONS: List[str] = ['.js', '.html', '.txt', '.htm', '.xhtml', '.vue']
 _DEFAULT_CMDLINE_ARGS: List[str] = ['--disable-http-cache']
@@ -217,7 +227,7 @@ def settings_path() -> str:
 
 def start(
         *start_urls: str,
-        mode: Optional[Union[str, Literal[False]]] = 'auto',
+        mode: Optional[str] = 'auto',
         host: str = 'localhost',
         port: int = 8000,
         block: bool = True,
@@ -235,6 +245,19 @@ def start(
         shutdown_delay: float = 1.0,
         title: Optional[str] = None,
         resizable: bool = True,
+        frameless: Optional[bool] = None,
+        easy_drag: Optional[bool] = None,
+        shadow: Optional[bool] = None,
+        debug: Optional[bool] = None,
+        confirm_close: Optional[bool] = None,
+        fullscreen: Optional[bool] = None,
+        minimized: Optional[bool] = None,
+        maximized: Optional[bool] = None,
+        on_top: Optional[bool] = None,
+        min_size: Optional[Tuple[int, int]] = None,
+        icon: Optional[str] = None,
+        gui: Optional[str] = None,
+        menu: Optional[List[Any]] = None,
         webview_options: Optional[Dict[str, Any]] = None) -> None:
     '''Start the Glue app.
 
@@ -263,10 +286,9 @@ def start(
         :code:`('index.html',)`.
     :param mode: Window host selection. :code:`'auto'` (default) tries
         PyWebView, then Chrome/Chromium, then Edge on Windows. Force
-        :code:`'webview'` (alias :code:`'pywebview'`), :code:`'chrome'`, or
+        :code:`'webview'`, :code:`'chrome'`, or
         :code:`'edge'`; use :code:`'custom'` with :code:`cmdline_args` as a
-        full :func:`subprocess.Popen` argv list; or :code:`None` /
-        :code:`False` for no window.
+        full :func:`subprocess.Popen` argv list; or :code:`None` for no window.
     :param host: Hostname used for Bottle server. *Default:*
         :code:`'localhost'`.
     :param port: Port used for Bottle server. Use :code:`0` for port to be
@@ -277,15 +299,18 @@ def start(
     :param jinja_templates: Folder for :mod:`jinja2` templates, e.g.
         :file:`my_templates`. *Default:* `None`.
     :param cmdline_args: Extra flags for Chrome/Edge (appended to the browser
-        command). With :code:`mode='custom'`, this must be the **full** argv
-        passed to :func:`subprocess.Popen` (not browser flags). Example for
-        Chrome: :code:`glue.start('main.html', mode='chrome', port=8080,
+        command). With :code:`mode='custom'`, this is the **full** argv passed
+        to :func:`subprocess.Popen` (executable + args). Example for Chrome:
+        :code:`glue.start('main.html', mode='chrome', port=8080,
         cmdline_args=['--start-fullscreen', '--browser-startup-dialog'])`.
         *Default:* :code:`['--disable-http-cache']`.
     :param size: Tuple specifying the (width, height) of the main window in
-        pixels. *Default:* `None`.
+        pixels. Applied on PyWebView via window kwargs and on Chrome/Edge via
+        :code:`window.resizeTo` in :file:`/glue.js`. *Default:* `None`
+        (Glue uses :code:`(1280, 720)`).
     :param position: Tuple specifying the (left, top) position of the main
-        window in pixels. *Default*: `None`.
+        window in pixels. Chrome/Edge use :code:`window.moveTo` in
+        :file:`/glue.js`. *Default*: `None` (host chooses, usually centered).
     :param geometry: A dictionary of specifying the size/position for all
         windows. The keys should be the relative path of the page, and the
         values should be a dictionary of the form
@@ -325,20 +350,56 @@ def start(
     :param resizable: Whether the user can resize the window (PyWebView).
         *Default:* :code:`True`. Ignored for Chrome/Edge app windows unless
         you pass matching browser flags yourself.
-    :param webview_options: Extra keyword arguments forwarded to PyWebView
-        (:func:`webview.create_window` and/or :func:`webview.start`), e.g.
-        :code:`frameless`, :code:`menu`, :code:`debug`, :code:`gui`.
-        Glue defaults to frameless windows with no native menus and an
-        OS-styled in-page title bar (override with
-        :code:`frameless=False` for native OS chrome). *Default:*
-        :code:`None`.
+    :param frameless: PyWebView: hide native caption bar (Glue draws an
+        in-page title bar). *Default when unset:* :code:`True`.
+    :param easy_drag: PyWebView: drag window from anywhere when frameless.
+        *Default when unset:* :code:`False` (drag via title-bar region).
+    :param shadow: PyWebView window shadow (Windows). *Default when unset:*
+        :code:`True` on Windows.
+    :param debug: PyWebView: DevTools / browser accelerators. *Default when
+        unset:* :code:`False`.
+    :param confirm_close: PyWebView: native close confirmation. *Default when
+        unset:* :code:`False`.
+    :param fullscreen: PyWebView start fullscreen. *Default when unset:*
+        :code:`False`.
+    :param minimized: PyWebView start minimized. *Default when unset:*
+        :code:`False`.
+    :param maximized: PyWebView start maximized. *Default when unset:*
+        :code:`False`.
+    :param on_top: PyWebView always-on-top. *Default when unset:* :code:`False`.
+    :param min_size: PyWebView ``(width, height)`` minimum. *Default when
+        unset:* PyWebView default.
+    :param icon: Path to ``.ico`` (Windows) / ``.icns`` (macOS) for the native
+        window. *Default when unset:* ``ui/favicon.ico`` if present.
+    :param gui: Force PyWebView backend (``edgechromium``, ``qt``, ``gtk``,
+        …). *Default when unset:* auto.
+    :param menu: PyWebView application :class:`Menu` list. *Default when
+        unset:* no menus (``[]``).
+    :param webview_options: Escape hatch for other PyWebView
+        :func:`webview.create_window` / :func:`webview.start` kwargs (e.g.
+        :code:`private_mode`, :code:`transparent`). Explicit first-class
+        kwargs above win over the same key here. *Default:* :code:`None`.
     '''
     if cmdline_args is None:
         cmdline_args = list(_DEFAULT_CMDLINE_ARGS)
     if geometry is None:
         geometry = {}
-    if webview_options is None:
-        webview_options = {}
+    webview_options = _merge_webview_options(
+        webview_options,
+        frameless=frameless,
+        easy_drag=easy_drag,
+        shadow=shadow,
+        debug=debug,
+        confirm_close=confirm_close,
+        fullscreen=fullscreen,
+        minimized=minimized,
+        maximized=maximized,
+        on_top=on_top,
+        min_size=min_size,
+        icon=icon,
+        gui=gui,
+        menu=menu,
+    )
     if app is None:
         app = btl.default_app()
     if not start_urls:
@@ -352,6 +413,12 @@ def start(
             UserWarning,
             stacklevel=2,
         )
+
+    # Omit / None → Glue default so Chrome/Edge get resizeTo via /glue.js
+    # (_start_geometry) and PyWebView gets the same width/height.
+    if size is None:
+        import glue.webview as webview
+        size = webview.DEFAULT_WINDOW_SIZE
 
     _start_args.update({
         'mode': mode,
@@ -573,11 +640,14 @@ def spawn(function: Callable[..., Any], *args: Any, **kwargs: Any) -> gvt.Greenl
 
 
 def _glue() -> str:
-    start_geometry = {'default': {'size': _start_args['size'],
+    import glue.webview as webview
+    size = _start_args['size']
+    if size is None:
+        size = webview.DEFAULT_WINDOW_SIZE
+    start_geometry = {'default': {'size': size,
                                   'position': _start_args['position']},
                       'pages':   _start_args['geometry']}
 
-    import glue.webview as webview
     page = _glue_js.replace('/** _py_functions **/',
                            '_py_functions: %s,' % _safe_json(list(_exposed_functions.keys())))
     page = page.replace('/** _start_geometry **/',

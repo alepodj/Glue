@@ -23,7 +23,7 @@ A little and opinionated Python library for making **desktop apps with HTML, CSS
 - [Async Python](#async-python)
 - [Package with PyInstaller](#package-with-pyinstaller)
 - [Examples](#examples)
-- [Project layout for an app](#project-layout-for-an-app)
+- [Project layout](#project-layout)
 
 ---
 
@@ -411,7 +411,7 @@ See the [PyInstaller docs](https://pyinstaller.readthedocs.io/) for more.
 
 ---
 
-## Project layout for an app
+## Project layout
 
 ```
 my_app.py

@@ -247,7 +247,7 @@ Pass keyword arguments to `glue.start()`:
 | Option | Default | Source | Hosts | Notes |
 |--------|---------|--------|-------|--------|
 | *(pages)* | `'index.html'` | Glue | all | Which HTML file(s) to open first (positional args), they must come before keyword args |
-| `mode` | `'auto'` | Glue | all | How to show the UI:<br>`'auto'` — try PyWebView, then Chrome, then Edge (Windows)<br>`'webview'` — PyWebView only (no browser fallback)<br>`'chrome'` / `'edge'` — force that browser<br>`'custom'` — run `cmdline_args` as a full `Popen` argv<br>`None` — server only (no window) |
+| `mode` | `'auto'` | Glue | all | How to show the UI — see [Hosts](#hosts) |
 | `host` | `'localhost'` | Glue | all | Hostname the local HTTP server binds to |
 | `port` | `8000` | Glue | all | Server port (`0` = pick a free port) |
 | `block` | `True` | Glue | all | Keep `start()` running until the app exits. `False` returns so you can run your own loop (skips PyWebView in `auto`; PyWebView needs `True`) |
@@ -258,16 +258,16 @@ Pass keyword arguments to `glue.start()`:
 | `default_path` | `'index.html'` | Glue | all | Page served for the root URL `/` (homepage) |
 | `app` | new Bottle | Glue | all | Optional custom [Bottle](https://bottlepy.org/) app (e.g. add auth/session middleware). Omit to let Glue create one |
 | `shutdown_delay` | `1.0` | Glue | all | Seconds to wait after the last window closes before the Python process exits |
-| `geometry` | `{}` | Glue | webview | When opening multiple pages, set size/position per file. Keys = page paths; values = `geometry={'page.html': {'size': (w, h), 'position': (x, y)}` (either key optional). Overrides global `size` / `position` for that page only |
+| `geometry` | `{}` | Glue | webview / chrome / edge | Per-page size/position when opening multiple files. Keys = page paths; values = `{'size': (w, h), 'position': (x, y)}` (either key optional). Overrides global `size` / `position` for that page |
 | `app_mode` | `True` | Glue | chrome/edge | Open Chromium in `--app` (desktop-like, less browser chrome) |
 | `cmdline_args` | `['--disable-http-cache']` | Glue | chrome/edge/custom | **Chrome/Edge:** extra flags appended to the browser command. **`custom`:** the full `Popen` argv (executable + args) |
 | `frameless` | `True` | PyWebView | webview | Hide the OS title bar; Glue draws its in-page title bar (`False` = stock OS chrome) |
-| `easy_drag` | `False` | PyWebView | webview | Allow dragging a frameless window from any empty area (not only the title bar) |
+| `easy_drag` | `False` | PyWebView | webview | Allow dragging a frameless window from any empty area of the page |
 | `shadow` | `True` on Windows | PyWebView | webview | Draw a drop shadow around the window |
 | `debug` | `False` | PyWebView | webview | Enable DevTools / shortcuts (F12, F5, context menu) for debugging |
 | `confirm_close` | `False` | PyWebView | webview | Ask “close this window?” before quitting |
 | `fullscreen` | `False` | PyWebView | webview | Start covering the whole screen |
-| `minimized` | `False` | PyWebView | webview | Start in the taskbar/dock (not visible) |
+| `minimized` | `False` | PyWebView | webview | Start in the taskbar/dock (hidden until restored) |
 | `maximized` | `False` | PyWebView | webview | Start maximized to the work area |
 | `on_top` | `False` | PyWebView | webview | Keep the window above other windows |
 | `min_size` | `(200, 100)` | PyWebView | webview | Smallest `(width, height)` the user can resize to |
@@ -275,8 +275,8 @@ Pass keyword arguments to `glue.start()`:
 | `gui` | auto | PyWebView | webview | Force a specific web engine backend (`'edgechromium'`, `'qt'`, `'gtk'`, …) |
 | `menu` | `[]` | PyWebView | webview | Native menu bar (`Menu` / `MenuAction` from PyWebView); empty = no menus |
 | `webview_options` | `{}` | PyWebView | webview | Escape hatch for other [PyWebView](https://pywebview.flowrl.com/api/) kwargs; first-class kwargs win on conflict |
-| `size` | `None` | both | webview | Initial content size as `(width, height)` pixels. Defaults to **1280×720** on every host |
-| `position` | `None` | both | webview | Initial screen position as `(left, top)`. Default leaves placement to the host, usually centered |
+| `size` | `None` → **1280×720** | both | webview / chrome / edge | Initial content size as `(width, height)` pixels |
+| `position` | `None` | both | webview / chrome / edge | Initial screen position as `(left, top)`; omit to leave placement to the host (usually centered) |
 | `title` | `'Glue'` | both | webview | Text in the native/in-page title bar (Chrome/Edge use the page `<title>`) |
 | `resizable` | `True` | both | webview | Allow the user to resize; on Windows frameless, Glue adds edge grips |
 
@@ -303,12 +303,14 @@ Default order for `mode='auto'`:
 2. **Chrome/Chromium** — app mode (`--app`) on all platforms
 3. **Edge** — Windows only, if Chrome is missing
 
+`size` / `position` / `geometry` apply on PyWebView as window kwargs, and on Chrome/Edge via `/glue.js` (`resizeTo` / `moveTo` on page load).
+
 PyWebView window options are first-class on [`glue.start()`](#app-options) (plus `webview_options` escape hatch).
 
 | `mode` | Behavior |
 |--------|----------|
 | `'auto'` | PyWebView → Chrome → Edge (Windows); see above |
-| `'webview'` | Force PyWebView (no browser fallback) |
+| `'webview'` | PyWebView only |
 | `'chrome'` / `'edge'` | Force that Chromium browser |
 | `None` | Server only (tests, custom frontends) |
 | `'custom'` | Raw `Popen(cmdline_args)` — the full process argv (executable + args) |

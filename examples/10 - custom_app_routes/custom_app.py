@@ -2,8 +2,6 @@ import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
-from common import WINDOW_SIZE
-
 import glue
 import bottle
 # from beaker.middleware import SessionMiddleware
@@ -21,4 +19,4 @@ glue.init()
 # middleware = SessionMiddleware(app)
 # glue.start('index.html', app=middleware)
 
-glue.start('index.html', app=app, size=WINDOW_SIZE)
+glue.start('index.html', app=app)

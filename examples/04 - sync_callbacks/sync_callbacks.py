@@ -3,8 +3,6 @@ import sys
 import random
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
-from common import WINDOW_SIZE
-
 import glue
 
 glue.init()
@@ -13,7 +11,7 @@ glue.init()
 def py_random():
     return random.random()
 
-glue.start('sync_callbacks.html', block=False, size=WINDOW_SIZE)
+glue.start('sync_callbacks.html', block=False)
 
 # Synchronous calls must happen after start() is called
 

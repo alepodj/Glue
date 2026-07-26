@@ -3,8 +3,6 @@ import sys
 import random
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
-from common import WINDOW_SIZE
-
 import glue
 
 glue.init()
@@ -39,4 +37,4 @@ glue.js_random()(lambda n: print('Got this from Javascript:', n))
 glue.js_with_error()(print_num, print_num_failed)
 
 
-glue.start('callbacks.html', size=WINDOW_SIZE)
+glue.start('callbacks.html')

@@ -186,29 +186,30 @@ def test_webview_geometry_kwargs():
 def test_webview_default_size_when_size_none():
     import glue.webview as webview
 
+    w, h = webview.DEFAULT_WINDOW_SIZE
     kwargs = webview._geometry_kwargs(
         'http://localhost:8000/index.html',
         {'size': None, 'position': None, 'geometry': {}},
     )
-    assert kwargs == {'width': 1280, 'height': 720}
+    assert kwargs == {'width': w, 'height': h}
 
 
-def test_glue_js_start_geometry_defaults_size():
-    """Chrome/Edge path: omitted size must not be null in _start_geometry."""
+def test_glue_js_start_geometry_uses_size():
+    """After start(), size is resolved; /glue.js injects it for Chrome/Edge resizeTo."""
     import glue
     import glue.webview as webview
 
+    w, h = webview.DEFAULT_WINDOW_SIZE
     prev = dict(glue._start_args)
     try:
         glue._start_args.update({
-            'size': None,
+            'size': (w, h),
             'position': None,
             'geometry': {},
             'disable_cache': False,
         })
         js = glue._glue()
-        assert '"size": [1280, 720]' in js
-        assert webview.DEFAULT_WINDOW_SIZE == (1280, 720)
+        assert '"size": [%d, %d]' % (w, h) in js
     finally:
         glue._start_args.clear()
         glue._start_args.update(prev)

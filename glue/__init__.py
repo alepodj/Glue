@@ -311,11 +311,10 @@ def start(
     :param position: Tuple specifying the (left, top) position of the main
         window in pixels. Chrome/Edge use :code:`window.moveTo` in
         :file:`/glue.js`. *Default*: `None` (host chooses, usually centered).
-    :param geometry: A dictionary of specifying the size/position for all
-        windows. The keys should be the relative path of the page, and the
-        values should be a dictionary of the form
-        :code:`{'size': (200, 100), 'position': (300, 50)}`. *Default:*
-        :code:`{}`.
+    :param geometry: Per-page size/position map (page path →
+        :code:`{'size': (w, h), 'position': (x, y)}`, either key optional).
+        Applied on PyWebView and via :file:`/glue.js` for Chrome/Edge.
+        *Default:* :code:`{}`.
     :param close_callback: A lambda or function that is called when a websocket
         or window closes (i.e. when the user closes the window). It should take
         two arguments: a string which is the relative path of the page that
@@ -368,7 +367,7 @@ def start(
         :code:`False`.
     :param on_top: PyWebView always-on-top. *Default when unset:* :code:`False`.
     :param min_size: PyWebView ``(width, height)`` minimum. *Default when
-        unset:* PyWebView default.
+        unset:* :code:`(200, 100)`.
     :param icon: Path to ``.ico`` (Windows) / ``.icns`` (macOS) for the native
         window. *Default when unset:* ``ui/favicon.ico`` if present.
     :param gui: Force PyWebView backend (``edgechromium``, ``qt``, ``gtk``,
@@ -414,8 +413,7 @@ def start(
             stacklevel=2,
         )
 
-    # Omit / None → Glue default so Chrome/Edge get resizeTo via /glue.js
-    # (_start_geometry) and PyWebView gets the same width/height.
+    # Omit / None → DEFAULT_WINDOW_SIZE (Chrome/Edge resizeTo + PyWebView create_window).
     if size is None:
         import glue.webview as webview
         size = webview.DEFAULT_WINDOW_SIZE
@@ -641,10 +639,7 @@ def spawn(function: Callable[..., Any], *args: Any, **kwargs: Any) -> gvt.Greenl
 
 def _glue() -> str:
     import glue.webview as webview
-    size = _start_args['size']
-    if size is None:
-        size = webview.DEFAULT_WINDOW_SIZE
-    start_geometry = {'default': {'size': size,
+    start_geometry = {'default': {'size': _start_args['size'],
                                   'position': _start_args['position']},
                       'pages':   _start_args['geometry']}
 

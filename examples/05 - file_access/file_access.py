@@ -3,8 +3,6 @@ import sys
 import random
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
-from common import WINDOW_SIZE
-
 import glue
 
 glue.init()
@@ -16,4 +14,4 @@ def pick_file(folder):
     else:
         return 'Not valid folder'
 
-glue.start('file_access.html', size=WINDOW_SIZE)
+glue.start('file_access.html')

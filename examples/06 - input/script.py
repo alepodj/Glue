@@ -2,8 +2,6 @@ import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
-from common import WINDOW_SIZE
-
 import glue
 
 glue.init()                     # Serve the ui/ folder
@@ -14,4 +12,4 @@ def handleinput(x):
 
 glue.say_hello_js('connected!')   # Call a Javascript function
 
-glue.start('main.html', size=WINDOW_SIZE)
+glue.start('main.html')

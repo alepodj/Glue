@@ -3,11 +3,12 @@
 ### 0.5.7
 
 * Promote common PyWebView window knobs to first-class `glue.start()` kwargs (`frameless`, `easy_drag`, `shadow`, `debug`, `confirm_close`, `fullscreen` / `minimized` / `maximized` / `on_top`, `min_size`, `icon`, `gui`, `menu`). Explicit values win over the same key in `webview_options=`; unset (`None`) keeps prior Glue defaults. `webview_options` remains the escape hatch for the long tail.
-* Default window `size` when omitted is **1280×720** for every host: stored in `_start_args` so Chrome/Edge get it through `/glue.js` `resizeTo` (Eel’s original path), and PyWebView no longer falls through to 800×600.
+* Default omitted window `size` is **1280×720** on every host (`_start_args` → Chrome/Edge `/glue.js` `resizeTo`; same value for PyWebView `create_window`).
+* Examples rely on that default (removed shared `examples/common.py` `WINDOW_SIZE`).
 * README: one `glue.start()` options table with **Source** (Glue / PyWebView / both) and **Hosts** columns.
 * Require `pywebview>=6.0` (development and testing have been on 6.2.x).
-* Mode name is only `'webview'` (dropped the `'pywebview'` alias).
-* Server-only mode is `mode=None` only (dropped the `False` alias).
+* Mode name is `'webview'` only (`'pywebview'` removed).
+* Server-only mode is `mode=None` only (`False` removed).
 
 ### 0.5.6
 

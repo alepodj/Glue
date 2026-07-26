@@ -24,7 +24,7 @@ import mimetypes
 import threading
 import time
 
-__version__ = '0.5.1'
+__version__ = '0.5.2'
 
 
 mimetypes.add_type('application/javascript', '.js')
@@ -297,9 +297,11 @@ def start(
     :param app_mode: Whether to run Edge/Chrome in App Mode (:code:`--app`).
         *Default:* :code:`True`. Ignored for PyWebView.
     :param all_interfaces: Whether to allow the :mod:`bottle` server to listen
-        for connections on all interfaces (:code:`0.0.0.0`). **Warning:** any
-        client that can reach this host can invoke every :func:`expose`d Python
-        function over the WebSocket. Use only on trusted networks. *Default:*
+        for connections on all interfaces (:code:`0.0.0.0`) and accept Glue
+        WebSocket clients from non-loopback peers. **Warning:** any client that
+        can reach this host can invoke every :func:`expose`d Python function
+        over the WebSocket. Use only on trusted networks. When :code:`False`
+        (default), non-loopback WebSocket peers are rejected. *Default:*
         :code:`False`.
     :param disable_cache: Sets the no-store response header when serving
         assets.
@@ -342,9 +344,9 @@ def start(
 
     if all_interfaces:
         warnings.warn(
-            "all_interfaces=True binds on 0.0.0.0; any client that can reach "
-            "this host can call @glue.expose Python functions over the "
-            "WebSocket. Use only on trusted networks.",
+            "all_interfaces=True binds on 0.0.0.0 and allows non-loopback "
+            "Glue WebSocket clients; any client that can reach this host can "
+            "call @glue.expose Python functions. Use only on trusted networks.",
             UserWarning,
             stacklevel=2,
         )
@@ -575,7 +577,7 @@ def _glue() -> str:
 
     import glue.webview as webview
     page = _glue_js.replace('/** _py_functions **/',
-                           '_py_functions: %s,' % list(_exposed_functions.keys()))
+                           '_py_functions: %s,' % _safe_json(list(_exposed_functions.keys())))
     page = page.replace('/** _start_geometry **/',
                         '_start_geometry: %s,' % _safe_json(start_geometry))
     page = page.replace('/** _webview **/',
@@ -609,8 +611,30 @@ def _static(path: str) -> btl.Response:
     return response
 
 
+def _is_loopback_addr(addr: Optional[str]) -> bool:
+    """True if *addr* is a loopback client address (IPv4/IPv6 / mapped)."""
+    if not addr:
+        return False
+    a = addr.strip().lower()
+    if a in ('127.0.0.1', '::1', 'localhost'):
+        return True
+    if a.startswith('::ffff:') and a.rsplit(':', 1)[-1] == '127.0.0.1':
+        return True
+    return False
+
+
 def _websocket(ws: WebSocketT) -> None:
     global _websockets
+
+    # Default: only loopback may open the Glue bridge (remote needs all_interfaces=True).
+    if not _start_args.get('all_interfaces'):
+        peer = btl.request.environ.get('REMOTE_ADDR')
+        if not _is_loopback_addr(peer if isinstance(peer, str) else None):
+            try:
+                ws.close()
+            except Exception:
+                pass
+            return
 
     for js_function in _js_functions:
         _import_js_function(js_function)
@@ -694,12 +718,10 @@ def _process_message(message: Dict[str, Any], ws: WebSocketT) -> None:
             return_val = _exposed_functions[name](*message['args'])
             status = 'ok'
         except Exception as e:
-            err_traceback = traceback.format_exc()
-            traceback.print_exc()
+            traceback.print_exc()  # server-side only — do not send stacks to the client
             return_val = None
             status = 'error'
             error_info['errorText'] = repr(e)
-            error_info['errorTraceback'] = err_traceback
         _repeated_send(ws, _safe_json({'return': message['call'],
                                        'status': status,
                                        'value': return_val,
@@ -712,7 +734,7 @@ def _process_message(message: Dict[str, Any], ws: WebSocketT) -> None:
                 callback(message['value'])
             elif message['status'] == 'error' and error_callback is not None:
                 err = message.get('error')
-                # Unified wire shape: {'errorText', 'errorTraceback'}; keep legacy string+stack
+                # Wire shape from JS: {'errorText', 'errorTraceback'} or legacy string+stack
                 if isinstance(err, dict):
                     error_callback(err.get('errorText'), err.get('errorTraceback'))
                 else:
@@ -796,8 +818,9 @@ def _call_return(call: Dict[str, Any]) -> Callable[[Optional[Callable[..., Any]]
 
 
 def _expose(name: str, function: Callable[..., Any]) -> None:
-    msg = 'Already exposed function with name "%s"' % name
-    assert name not in _exposed_functions, msg
+    name = _validate_js_name(name)
+    if name in _exposed_functions:
+        raise ValueError('Already exposed function with name "%s"' % name)
     _exposed_functions[name] = function
 
 

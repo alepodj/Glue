@@ -77,6 +77,10 @@ Include the bridge on every html page:
 
 ***Put your backend logic in one Python file or split it across any folders you like — Glue does not require a fixed backend layout. You own the imports and paths; your start point is the Python script you run (often at the project root).***
 
+### Security note
+
+By default Glue binds to **localhost** and only accepts Glue WebSocket clients from the loopback interface. Every `@glue.expose`d Python function is callable by any page that can open that socket — treat exposed functions as your trust boundary. Do not put secrets under the frontend folder (`ui/`). Use `all_interfaces=True` only on trusted networks (it allows remote clients to call exposed functions).
+
 ---
 
 ## Demo
@@ -254,7 +258,7 @@ Pass keyword arguments to `glue.start()`:
 | `jinja_templates` | `None` | Folder name for Jinja2 templates |
 | `geometry` | `{}` | Per-page size/position |
 | `close_callback` | `None` | Called when a window closes |
-| `all_interfaces` | `False` | Bind on `0.0.0.0` (any client can call `@glue.expose` — trusted networks only) |
+| `all_interfaces` | `False` | Bind on `0.0.0.0` and allow non-loopback WebSocket clients (any reachable client can call `@glue.expose` — trusted networks only) |
 | `disable_cache` | `True` | Send `no-store` when serving assets |
 | `default_path` | `'index.html'` | File served for the root URL `/` |
 | `app` | new Bottle | Pass your own Bottle app / middleware |

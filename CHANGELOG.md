@@ -1,5 +1,13 @@
 # Change log
 
+### 0.5.2
+
+* **Security:** Encode `_py_functions` in `/glue.js` with JSON (not Python `list` repr); validate every `@glue.expose` name as a JS identifier; raise `ValueError` on duplicate expose (no longer `assert`).
+* **Security:** Python exceptions returned to the page include `errorText` only — full tracebacks stay on the server console.
+* **Security:** When `all_interfaces` is false (default), reject Glue WebSocket clients whose peer is not loopback (`127.0.0.1` / `::1`).
+* Example `05 - file_access` uses `textContent` instead of `innerHTML` for RPC results.
+* README: short security note on the expose/localhost trust boundary.
+
 ### 0.5.1
 
 * Rename internal modules: `glue.settings_store` → `glue.settings`, `glue.webview_host` → `glue.webview` (public API unchanged: `glue.settings()` / PyWebView host).

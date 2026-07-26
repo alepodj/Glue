@@ -166,9 +166,11 @@ glue = {
 
         let os = glue._webview_os();
         let title = (glue._webview && glue._webview.title) || document.title || 'Glue';
-        let barH = (glue._webview && glue._webview.titlebar_height)
-            || ({ windows: 36, macos: 38, linux: 40 })[os]
-            || 36;
+        // Heights come from Python (TITLEBAR_HEIGHTS via _webview) — single source of truth.
+        let barH = Number(glue._webview && glue._webview.titlebar_height) || 0;
+        if(!barH){
+            return;
+        }
         document.documentElement.classList.add('glue-webview-chrome', 'glue-webview-chrome--' + os);
         document.documentElement.style.setProperty('--glue-titlebar-height', barH + 'px');
 

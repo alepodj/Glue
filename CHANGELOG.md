@@ -1,5 +1,19 @@
 # Change log
 
+### 0.5.4
+
+* Rename `glue.chromium` → `glue.browsers_launcher` (shared Chrome/Edge launch + find helpers; avoids sounding like a third browser).
+* Docs/hygiene: README quick-start path example, PyWebView default size note, `show()` docstring fixes, `python -m glue` description is PyWebView-first.
+* Drop redundant integration `test_02` (harness forces `mode=None`, so it never tested Chrome).
+* Presentation example uses `glue.start()` without redundant `'index.html'`.
+* Remove leftover temp file under `examples/01 - hello_world/`.
+
+### 0.5.3
+
+* DRY: shared Windows `App Paths` lookup and macOS `.app` finder in `glue.browsers_launcher` (used by Chrome and Edge).
+* DRY: `platform_name()` lives in `glue.browsers_launcher`; `glue.webview` imports it (single OS naming helper).
+* DRY: in-page title-bar height comes only from the Python `_webview` payload — removed duplicate height map in `glue.js`.
+
 ### 0.5.2
 
 * **Security:** Encode `_py_functions` in `/glue.js` with JSON (not Python `list` repr); validate every `@glue.expose` name as a JS identifier; raise `ValueError` on duplicate expose (no longer `assert`).

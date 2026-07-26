@@ -7,7 +7,7 @@ from glue.types import OptionsDictT
 import glue.chrome as chm
 import glue.edge as edge
 import glue.webview as webview
-from glue.chromium import is_windows
+from glue.browsers_launcher import is_windows
 
 _browser_paths: Dict[str, str] = {}
 _browser_modules: Dict[str, ModuleType] = {

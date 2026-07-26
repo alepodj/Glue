@@ -22,16 +22,8 @@ def test_01_hello_world(driver):
             assert any(needle in msg for msg in messages), messages
 
 
-def test_02_hello_world_chrome(driver):
-    with get_glue_server('examples/02 - hello_world_chrome/hello.py', 'hello.html') as glue_url:
-        driver.get(glue_url)
-        assert driver.title == "Hello, World! (Chrome)"
-
-        expected = ("Hello from Javascript World!", "Hello from Python World!")
-        console_logs = get_console_logs(driver, contains=expected)
-        messages = [entry['message'] for entry in console_logs]
-        for needle in expected:
-            assert any(needle in msg for msg in messages), messages
+# examples/02 forces mode='chrome' in the script, but the integration harness
+# overrides mode=None — so a separate test_02 would not exercise Chrome.
 
 
 def test_03_callbacks(driver):

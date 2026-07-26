@@ -50,4 +50,4 @@ def bridge_call_js(payload):
     }
 
 
-glue.start('index.html', size=PRESENTATION_SIZE)
+glue.start(size=PRESENTATION_SIZE)

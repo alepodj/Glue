@@ -8,11 +8,11 @@ thread when PyWebView is used (gevent greenlets would starve).
 from __future__ import annotations
 
 import ctypes
-import sys
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
 from glue.types import OptionsDictT
+from glue.browsers_launcher import platform_name
 
 # Keys accepted by webview.start() (not create_window).
 _START_KWARG_KEYS = frozenset({
@@ -72,15 +72,6 @@ def is_gui_loop_active() -> bool:
 def chrome_config() -> Dict[str, Any]:
     """Config embedded in ``glue.js`` for the in-page window chrome."""
     return dict(_chrome_config)
-
-
-def platform_name() -> str:
-    """Return ``windows``, ``macos``, or ``linux`` for chrome styling."""
-    if sys.platform == 'darwin':
-        return 'macos'
-    if sys.platform == 'win32' or sys.platform.startswith('win'):
-        return 'windows'
-    return 'linux'
 
 
 def titlebar_height(platform: Optional[str] = None) -> int:

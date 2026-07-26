@@ -14,8 +14,9 @@ except ImportError as exc:
     ) from exc
 
 parser: ArgumentParser = ArgumentParser(description="""
-Glue is a little Python library for making simple Chromium-based offline HTML/JS GUI apps,
- with full access to Python capabilities and libraries.
+Glue is a little Python library for making simple desktop HTML/JS GUI apps
+(PyWebView by default, with Chrome/Edge fallback), with full access to Python
+capabilities and libraries.
 """)
 parser.add_argument(
     "main_script",

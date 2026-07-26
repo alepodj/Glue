@@ -24,7 +24,7 @@ import mimetypes
 import threading
 import time
 
-__version__ = '0.5.2'
+__version__ = '0.5.4'
 
 
 mimetypes.add_type('application/javascript', '.js')
@@ -505,7 +505,7 @@ def show(*start_urls: str) -> None:
     interactivity, and the file     :file:`goodbye.html` does not include
     :file:`glue.js` and simply provides plain HTML content not reliant on Glue.
 
-    First, we defien a callback function to be called when the browser
+    First, we define a callback function to be called when the browser
     window is closed:
 
     .. code-block:: python
@@ -516,7 +516,7 @@ def show(*start_urls: str) -> None:
     Now we initialise and start Glue, with a :code:`close_callback` to our
     function:
 
-    ..code-block:: python
+    .. code-block:: python
 
         glue.init()
         glue.start('hello.html', mode='auto', close_callback=last_calls)

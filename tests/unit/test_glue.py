@@ -203,11 +203,20 @@ def test_webview_titlebar_heights():
 
 
 def test_webview_platform_name(monkeypatch):
+    import glue.browsers_launcher as browsers_launcher
     import glue.webview as webview
 
-    monkeypatch.setattr(webview.sys, 'platform', 'win32')
+    monkeypatch.setattr(browsers_launcher.sys, 'platform', 'win32')
     assert webview.platform_name() == 'windows'
-    monkeypatch.setattr(webview.sys, 'platform', 'darwin')
+    monkeypatch.setattr(browsers_launcher.sys, 'platform', 'darwin')
     assert webview.platform_name() == 'macos'
-    monkeypatch.setattr(webview.sys, 'platform', 'linux')
+    monkeypatch.setattr(browsers_launcher.sys, 'platform', 'linux')
     assert webview.platform_name() == 'linux'
+
+
+def test_browsers_launcher_helpers_exist():
+    import glue.browsers_launcher as browsers_launcher
+
+    assert callable(browsers_launcher.find_app_path_win)
+    assert callable(browsers_launcher.find_mac_app)
+    assert browsers_launcher.platform_name() in ('windows', 'macos', 'linux')

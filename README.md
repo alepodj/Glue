@@ -63,8 +63,8 @@ Put your frontend in a folder named `ui/` and `index.html` (the defaults), then:
 ```python
 import glue
 
-glue.init()    #Override ui with any path `glue.init('web')`
-glue.start()   #Override index.html with any file `glue.start('main.html')`
+glue.init()    # Override ui/ with any path: glue.init('frontend')
+glue.start()   # Override index.html: glue.start('main.html')
 ```
 
 By default Glue opens a **PyWebView** native window. If that isn’t available, it falls back to **Chrome/Chromium** in app mode (`--app`), then **Edge** on Windows only.
@@ -249,7 +249,7 @@ Pass keyword arguments to `glue.start()`:
 | `host` | `'localhost'` | Bottle bind host |
 | `port` | `8000` | Use `0` to pick automatically |
 | `block` | `True` | Set `False` to keep running your own loop (skips PyWebView in `auto`) |
-| `size` | `None` | `(width, height)` content pixels |
+| `size` | `None` | `(width, height)` content pixels; PyWebView defaults to **800×600** if omitted |
 | `position` | `None` | `(left, top)` in pixels |
 | `title` | `None` | Native window title for PyWebView (defaults to `'Glue'`) |
 | `resizable` | `True` | Allow the user to resize the PyWebView window |

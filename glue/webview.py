@@ -206,7 +206,7 @@ def _start_win32_resize(window: Any, edge: str) -> bool:
     if ht is None or hwnd is None:
         return False
 
-    user32 = ctypes.windll.user32  # type: ignore[attr-defined]
+    user32 = ctypes.windll.user32
 
     def _do() -> None:
         user32.ReleaseCapture()
@@ -338,7 +338,7 @@ def _create_windows(
         if frameless and resizable and platform_name() == 'windows':
             # Must be pywebview.api (sync-ish), not Glue websockets — Win32
             # WM_NCLBUTTONDOWN has to run while the mouse button is still down.
-            def webview_start_resize(edge: str, _win=window) -> bool:
+            def webview_start_resize(edge: str, _win: Any = window) -> bool:
                 if _maximized.get(
                     id(_win), bool(getattr(_win, 'maximized', False))
                 ):
@@ -422,7 +422,7 @@ def open_urls(
             ) from exc
         # Avoid leaving half-configured state before Chrome/Edge fallback.
         try:
-            webview.windows.clear()  # type: ignore[attr-defined]
+            webview.windows.clear()
         except Exception:
             pass
         return 'unavailable'

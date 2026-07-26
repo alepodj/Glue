@@ -3,7 +3,7 @@ import os
 from argparse import ArgumentParser, Namespace
 from typing import List
 
-import importlib_resources
+from importlib.resources import as_file, files
 
 try:
     import PyInstaller.__main__ as pyi
@@ -37,8 +37,8 @@ ui_folder: str = args.ui_folder
 print("Building executable with main script '%s' and UI folder '%s'...\n" %
       (main_script, ui_folder))
 
-_glue_js_ref = importlib_resources.files('glue') / 'glue.js'
-with importlib_resources.as_file(_glue_js_ref) as _glue_js_path:
+_glue_js_ref = files('glue') / 'glue.js'
+with as_file(_glue_js_ref) as _glue_js_path:
     glue_js_file: str = str(_glue_js_path)
     js_file_arg: str = '%s%sglue' % (glue_js_file, os.pathsep)
     ui_folder_arg: str = '%s%s%s' % (ui_folder, os.pathsep, ui_folder)

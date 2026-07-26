@@ -1,5 +1,10 @@
 # Change log
 
+### 0.5.8
+
+* **Breaking:** Require **Python 3.10+** (drop 3.7–3.9). CI/Tox matrix: 3.10–3.14.
+* Use stdlib `importlib.resources` and `typing.TypeAlias` / `TypedDict`; drop `importlib_resources` and `typing_extensions` dependencies.
+
 ### 0.5.7
 
 * Promote common PyWebView window knobs to first-class `glue.start()` kwargs (`frameless`, `easy_drag`, `shadow`, `debug`, `confirm_close`, `fullscreen` / `minimized` / `maximized` / `on_top`, `min_size`, `icon`, `gui`, `menu`). Explicit values win over the same key in `webview_options=`; unset (`None`) keeps prior Glue defaults. `webview_options` remains the escape hatch for the long tail.

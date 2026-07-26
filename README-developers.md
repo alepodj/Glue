@@ -32,7 +32,7 @@ Or editable install with extras: `pip install -e ".[jinja2,build]"`.
 
 ### (Recommended) Run Automated Tests
 
-CI runs on GitHub Actions (see `.github/workflows/test.yml`). Locally, Tox can run tests against each major version we support (3.7+). You will need multiple Python installs for the full Tox matrix; `.python-version` pins a recommended default (currently 3.10).
+CI runs on GitHub Actions (see `.github/workflows/test.yml`). Locally, Tox can run tests against each major version we support (**3.10+**). You will need multiple Python installs for the full Tox matrix.
 
 #### Test dependencies
 

@@ -1,12 +1,19 @@
 from __future__ import annotations
-from typing import Union, Dict, List, Tuple, Callable, Optional, Any, TYPE_CHECKING
-from typing_extensions import TypedDict, TypeAlias
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Tuple,
+    TypeAlias,
+    TypedDict,
+    Union,
+    TYPE_CHECKING,
+)
 from bottle import Bottle
 
-# This business is slightly awkward, but needed for backward compatibility,
-# because Python <3.10 doesn't support TypeAlias, jinja2 may not be available
-# at runtime, and geventwebsocket.websocket doesn't have type annotations so
-# that direct imports will raise an error.
+# jinja2 may be optional at runtime; geventwebsocket.websocket has no type stubs.
 if TYPE_CHECKING:
     from jinja2 import Environment
     JinjaEnvironmentT: TypeAlias = Environment

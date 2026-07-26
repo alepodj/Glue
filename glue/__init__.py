@@ -17,22 +17,19 @@ import glue.settings as _settings
 import pyparsing as pp
 import random as rnd
 import sys
-import importlib_resources
 import socket
 import mimetypes
 import threading
 import time
+from importlib.resources import as_file, files
 
-__version__ = '0.5.7'
+__version__ = '0.5.8'
 
 
 mimetypes.add_type('application/javascript', '.js')
 
-# https://setuptools.pypa.io/en/latest/pkg_resources.html
-#     Use of pkg_resources is deprecated in favor of importlib.resources
-# Migration guide: https://importlib-resources.readthedocs.io/en/latest/migration.html
-_glue_js_reference = importlib_resources.files('glue') / 'glue.js'
-with importlib_resources.as_file(_glue_js_reference) as _glue_js_path:
+_glue_js_reference = files('glue') / 'glue.js'
+with as_file(_glue_js_reference) as _glue_js_path:
     _glue_js: str = _glue_js_path.read_text(encoding='utf-8')
 
 _websockets: List[Tuple[Any, WebSocketT]] = []

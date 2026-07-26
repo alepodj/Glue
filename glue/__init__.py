@@ -206,18 +206,19 @@ def start(
     '''Start the Glue app.
 
     Suppose you put all the frontend files in a directory called
-    :file:`ui`, including your start page :file:`main.html`, then the app
+    :file:`ui`, including your start page :file:`index.html`, then the app
     is started like this:
 
     .. code-block:: python
 
         import glue
         glue.init()
-        glue.start('main.html')
+        glue.start()
 
     This will start a webserver on the default settings
     (http://localhost:8000) and open a native window (or browser) to
-    http://localhost:8000/main.html.
+    http://localhost:8000/index.html. Pass one or more page paths to open
+    something else, e.g. :code:`glue.start('main.html')`.
 
     By default (:code:`mode='auto'`), Glue prefers **PyWebView** for a real
     desktop window (menus, minimize/maximize/close under your control), then
@@ -225,6 +226,8 @@ def start(
     only. Use :code:`block=False` with :code:`mode='auto'` to skip PyWebView
     (its GUI loop must own the main thread) and launch Chrome/Edge instead.
 
+    :param start_urls: One or more relative page paths to open. *Default:*
+        :code:`('index.html',)`.
     :param mode: Window host selection. :code:`'auto'` (default) tries
         PyWebView, then Chrome/Chromium, then Edge on Windows. Force
         :code:`'webview'` (alias :code:`'pywebview'`), :code:`'chrome'`, or
@@ -301,6 +304,8 @@ def start(
         webview_options = {}
     if app is None:
         app = btl.default_app()
+    if not start_urls:
+        start_urls = ('index.html',)
 
     if all_interfaces:
         warnings.warn(

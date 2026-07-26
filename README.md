@@ -58,22 +58,24 @@ pip install ".[build]"    # PyInstaller for packaging
 
 ## Quick start
 
-Put your frontend in a folder named `ui/` (the default), then:
+Put your frontend in a folder named `ui/` and `index.html` (the defaults), then:
 
 ```python
 import glue
 
-glue.init()
-glue.start('index.html')
+glue.init()    #Override ui with any path `glue.init('web')`
+glue.start()   #Override index.html with any file `glue.start('main.html')`
 ```
 
-Override the folder with `glue.init('web')` (or any path). By default Glue opens a **PyWebView** native window. If that isn’t available, it falls back to **Chrome/Chromium** in app mode (`--app`), then **Edge** on Windows only.
+By default Glue opens a **PyWebView** native window. If that isn’t available, it falls back to **Chrome/Chromium** in app mode (`--app`), then **Edge** on Windows only.
 
-Include the bridge on every page:
+Include the bridge on every html page:
 
 ```html
 <script type="text/javascript" src="/glue.js"></script>
 ```
+
+***Put your backend logic in one Python file or split it across any folders you like — Glue does not require a fixed backend layout. You own the imports and paths; your start point is the Python script you run (often at the project root).***
 
 ---
 
@@ -93,18 +95,21 @@ python presentation.py
 ### Python → available in JavaScript
 
 ```python
+#python
 @glue.expose
 def add(a, b):
     return a + b
 ```
 
 ```javascript
+//javascript
 let sum = await glue.add(1, 2)();
 ```
 
 ### JavaScript → available in Python
 
 ```javascript
+//javascript
 glue.expose(js_random);
 function js_random() {
   return Math.random();
@@ -112,6 +117,7 @@ function js_random() {
 ```
 
 ```python
+#python
 n = glue.js_random()()          # wait for the value
 glue.js_random()(print)         # or use a callback
 ```
@@ -206,6 +212,7 @@ Pass keyword arguments to `glue.start()`:
 | Option | Default | Notes |
 |--------|---------|--------|
 | `mode` | `'auto'` | `'auto'`, `'webview'` / `'pywebview'`, `'chrome'`, `'edge'`, `'custom'`, or `None`/`False` (no window) |
+| *(pages)* | `'index.html'` | Positional: `glue.start()` or `glue.start('main.html')` |
 | `host` | `'localhost'` | Bottle bind host |
 | `port` | `8000` | Use `0` to pick automatically |
 | `block` | `True` | Set `False` to keep running your own loop (skips PyWebView in `auto`) |
@@ -252,7 +259,6 @@ Examples:
 
 ```python
 glue.start(
-    'main.html',
     mode='webview',
     title='My App',
     size=(1280, 720),
@@ -263,17 +269,17 @@ glue.start(
 
 ```python
 # Stock native OS chrome (no Glue title bar)
-glue.start('index.html', webview_options={'frameless': False})
+glue.start(webview_options={'frameless': False})
 
 # Native menu + your actions
 from webview.menu import Menu, MenuAction
-glue.start('index.html', webview_options={
+glue.start(webview_options={
     'frameless': False,
     'menu': [Menu('File', [MenuAction('Quit', lambda: None)])],
 })
 
 # DevTools / browser shortcuts
-glue.start('index.html', webview_options={'debug': True})
+glue.start(webview_options={'debug': True})
 ```
 
 ---
@@ -324,7 +330,7 @@ def ticker():
         glue.sleep(1.0)
 
 glue.spawn(ticker)
-glue.start('main.html', block=False)
+glue.start(block=False)
 
 while True:
     print("main")

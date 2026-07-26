@@ -14,6 +14,7 @@ except ImportError:
 import re as rgx
 import os
 import glue.browsers as brw
+import glue.settings as _settings
 import pyparsing as pp
 import random as rnd
 import sys
@@ -23,7 +24,7 @@ import mimetypes
 import threading
 import time
 
-__version__ = '0.5.0'
+__version__ = '0.5.1'
 
 
 mimetypes.add_type('application/javascript', '.js')
@@ -133,7 +134,8 @@ EXPOSED_JS_FUNCTIONS: pp.ZeroOrMore = pp.ZeroOrMore(
 def init(
         path: str = 'ui',
         allowed_extensions: Optional[List[str]] = None,
-        js_result_timeout: int = 10000) -> None:
+        js_result_timeout: int = 10000,
+        app_name: Optional[str] = None) -> None:
     '''Initialise Glue.
 
     This function should be called before :func:`start()` to initialise the
@@ -151,6 +153,9 @@ def init(
     :param js_result_timeout: How long Glue should be waiting to register the
         results from a call to Glue's JavaScript API before before timing out.
         *Default:* :code:`10000` milliseconds.
+    :param app_name: Optional. When set, unlocks the default user settings
+        path :file:`~/.{app_name}/{app_name}.json` for :func:`settings` /
+        :func:`save_settings`. Does not create any files. *Default:* `None`.
     '''
     global root_path, _js_functions, _js_result_timeout
     root_path = _get_real_path(path)
@@ -180,6 +185,34 @@ def init(
         _mock_js_function(js_function)
 
     _js_result_timeout = js_result_timeout
+    _settings.configure(app_name)
+
+
+def settings(path: Optional[str] = None) -> Dict[str, Any]:
+    '''Load app settings JSON as a plain dict.
+
+    With no *path*, uses :file:`~/.{app_name}/{app_name}.json` (requires
+    :code:`app_name` on :func:`init`). Missing file returns :code:`{}` and
+    does not create anything on disk. Pass an explicit *path* to load any
+    JSON file (works without :code:`app_name`).
+
+    Mutate the dict as usual, then :func:`save_settings` to persist.
+    '''
+    return _settings.load(path)
+
+
+def save_settings(data: Dict[str, Any], path: Optional[str] = None) -> str:
+    '''Write settings dict as JSON. Creates parent directories on first save.
+
+    With no *path*, writes to the last path used by :func:`settings`, or the
+    default path when :code:`app_name` is set. Returns the path written.
+    '''
+    return str(_settings.save(data, path))
+
+
+def settings_path() -> str:
+    '''Return the default settings file path (requires :code:`app_name`).'''
+    return str(_settings.settings_path())
 
 
 def start(
@@ -425,8 +458,8 @@ def start(
         if mode in brw.WEBVIEW_MODES:
             return bool(_start_args.get('block', True))
         if mode == 'auto':
-            import glue.webview_host as webview_host
-            return webview_host.should_try(_start_args)
+            import glue.webview as webview
+            return webview.should_try(_start_args)
         return False
 
     # Start the webserver first, then open the window once listening (avoids race).
@@ -458,8 +491,8 @@ def get_webview_windows() -> List[Any]:
     Empty when Chrome/Edge (or no window) is used. Useful for menus, title,
     and other native window control via the PyWebView API.
     '''
-    import glue.webview_host as webview_host
-    return webview_host.get_windows()
+    import glue.webview as webview
+    return webview.get_windows()
 
 
 def show(*start_urls: str) -> None:
@@ -540,13 +573,13 @@ def _glue() -> str:
                                   'position': _start_args['position']},
                       'pages':   _start_args['geometry']}
 
-    import glue.webview_host as webview_host
+    import glue.webview as webview
     page = _glue_js.replace('/** _py_functions **/',
                            '_py_functions: %s,' % list(_exposed_functions.keys()))
     page = page.replace('/** _start_geometry **/',
                         '_start_geometry: %s,' % _safe_json(start_geometry))
     page = page.replace('/** _webview **/',
-                        '_webview: %s,' % _safe_json(webview_host.chrome_config()))
+                        '_webview: %s,' % _safe_json(webview.chrome_config()))
     btl.response.content_type = 'application/javascript'
     _set_response_headers(btl.response)
     return page

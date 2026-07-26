@@ -6,7 +6,7 @@ from types import ModuleType
 from glue.types import OptionsDictT
 import glue.chrome as chm
 import glue.edge as edge
-import glue.webview_host as webview_host
+import glue.webview as webview
 from glue.chromium import is_windows
 
 _browser_paths: Dict[str, str] = {}
@@ -83,9 +83,9 @@ def _auto_browser_order() -> List[str]:
 
 
 def _open_webview(options: OptionsDictT, start_urls: List[str], *, required: bool) -> str:
-    """Launch via PyWebView. Returns webview_host.open_urls status string."""
+    """Launch via PyWebView. Returns webview.open_urls status string."""
     global _webview_session_completed
-    result = webview_host.open_urls(options, start_urls, required=required)
+    result = webview.open_urls(options, start_urls, required=required)
     if result == 'completed':
         _webview_session_completed = True
     return result
@@ -93,7 +93,7 @@ def _open_webview(options: OptionsDictT, start_urls: List[str], *, required: boo
 
 def _open_auto(options: OptionsDictT, start_urls: List[str]) -> None:
     # PyWebView (all OS) → Chrome (all OS) → Edge (Windows only)
-    if webview_host.should_try(options):
+    if webview.should_try(options):
         result = _open_webview(options, start_urls, required=False)
         if result in ('completed', 'shown'):
             return
@@ -116,7 +116,7 @@ def _open_auto(options: OptionsDictT, start_urls: List[str]) -> None:
 
 def open(start_pages: Iterable[Union[str, Dict[str, str]]], options: OptionsDictT) -> None:
     global _webview_session_completed
-    if not webview_host.is_gui_loop_active():
+    if not webview.is_gui_loop_active():
         _webview_session_completed = False
     # Build full URLs for starting pages (including host and port)
     start_urls = _build_urls(start_pages, options)

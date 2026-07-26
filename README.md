@@ -205,6 +205,35 @@ Python waits up to 10 seconds for a JS result by default (`js_result_timeout` on
 
 ---
 
+## Settings
+
+Optional durable JSON for themes, defaults, and other app state that should survive restarts. **Python only** — expose your own wrappers with `@glue.expose` if the UI needs it.
+
+The default location is opt-in via `app_name`. Without it, Glue does not invent a path; you can still load/save any file with an explicit path.
+
+```python
+import glue
+
+glue.init(app_name='myapp')   # unlocks ~/.myapp/myapp.json (all OS)
+
+data = glue.settings()        # {} if the file does not exist yet — nothing created on disk
+data['theme'] = 'dark'
+glue.save_settings(data)      # first save creates ~/.myapp/ and writes myapp.json
+```
+
+```python
+# Custom file — works with or without app_name
+data = glue.settings('/path/to/prefs.json')
+glue.save_settings(data, '/path/to/prefs.json')
+# or after settings(path), save_settings(data) reuses that path
+```
+
+- Structure of the JSON object is yours.
+- `glue.settings_path()` returns the default path when `app_name` is set.
+- Passing `app_name` alone does not create a folder or an empty file.
+
+---
+
 ## App options
 
 Pass keyword arguments to `glue.start()`:

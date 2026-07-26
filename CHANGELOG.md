@@ -1,9 +1,15 @@
 # Change log
 
+### 0.5.1
+
+* Rename internal modules: `glue.settings_store` → `glue.settings`, `glue.webview_host` → `glue.webview` (public API unchanged: `glue.settings()` / PyWebView host).
+* Version bump only otherwise.
+
 ### 0.5.0
 
 * **Breaking (default host):** `mode='auto'` prefers **PyWebView** on all platforms for a real desktop window, then falls back to Chrome/Chromium app mode, then Microsoft Edge on Windows only.
 * `glue.start()` defaults to opening `index.html` when no page arguments are passed.
+* Add optional `app_name=` on `glue.init()` with `glue.settings()` / `glue.save_settings()` / `glue.settings_path()` for user JSON under `~/.{app_name}/{app_name}.json` (opt-in; no files created until first save). Explicit paths work without `app_name`.
 * Add explicit modes `'webview'` / `'pywebview'`; add `title` and `webview_options` on `glue.start()`, plus `glue.get_webview_windows()` for native window control.
 * PyWebView is a runtime dependency (`pywebview>=5.0`) with graceful Chrome/Edge fallback if import or GUI startup fails. `block=False` with `auto` skips PyWebView (GUI loop must own the main thread).
 * Run the Bottle/gevent server in an OS thread when PyWebView is used so the GUI loop does not starve the hub (blank/unresponsive windows).

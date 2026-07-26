@@ -6,7 +6,7 @@ with open('README.md') as read_me:
 
 setup(
     name='Glue',
-    version='0.5.0',
+    version='0.5.1',
     author='alepodj',
     url='https://github.com/alepodj/Glue',
     packages=['glue'],

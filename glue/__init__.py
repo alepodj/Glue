@@ -24,7 +24,7 @@ import mimetypes
 import threading
 import time
 
-__version__ = '0.5.4'
+__version__ = '0.5.5'
 
 
 mimetypes.add_type('application/javascript', '.js')
@@ -264,8 +264,9 @@ def start(
     :param mode: Window host selection. :code:`'auto'` (default) tries
         PyWebView, then Chrome/Chromium, then Edge on Windows. Force
         :code:`'webview'` (alias :code:`'pywebview'`), :code:`'chrome'`, or
-        :code:`'edge'`; use :code:`'custom'` with :code:`cmdline_args`; or
-        :code:`None` / :code:`False` for no window.
+        :code:`'edge'`; use :code:`'custom'` with :code:`cmdline_args` as a
+        full :func:`subprocess.Popen` argv list; or :code:`None` /
+        :code:`False` for no window.
     :param host: Hostname used for Bottle server. *Default:*
         :code:`'localhost'`.
     :param port: Port used for Bottle server. Use :code:`0` for port to be
@@ -275,9 +276,10 @@ def start(
         as the window host.
     :param jinja_templates: Folder for :mod:`jinja2` templates, e.g.
         :file:`my_templates`. *Default:* `None`.
-    :param cmdline_args: A list of strings to pass to the command starting the
-        browser. For example, we might add extra flags to Chrome with
-        :code:`glue.start('main.html', mode='chrome', port=8080,
+    :param cmdline_args: Extra flags for Chrome/Edge (appended to the browser
+        command). With :code:`mode='custom'`, this must be the **full** argv
+        passed to :func:`subprocess.Popen` (not browser flags). Example for
+        Chrome: :code:`glue.start('main.html', mode='chrome', port=8080,
         cmdline_args=['--start-fullscreen', '--browser-startup-dialog'])`.
         *Default:* :code:`['--disable-http-cache']`.
     :param size: Tuple specifying the (width, height) of the main window in
@@ -581,7 +583,7 @@ def _glue() -> str:
     page = page.replace('/** _start_geometry **/',
                         '_start_geometry: %s,' % _safe_json(start_geometry))
     page = page.replace('/** _webview **/',
-                        '_webview: %s,' % _safe_json(webview.chrome_config()))
+                        '_webview: %s,' % _safe_json(webview.titlebar_config()))
     btl.response.content_type = 'application/javascript'
     _set_response_headers(btl.response)
     return page

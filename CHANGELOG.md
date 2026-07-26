@@ -1,5 +1,11 @@
 # Change log
 
+### 0.5.5
+
+* Rename `webview.chrome_config()` → `webview.titlebar_config()` (in-page title bar payload for `glue.js`; avoids “Chrome browser” confusion).
+* Clarify `mode='custom'`: `cmdline_args` is the full `Popen` argv, not extra browser flags (README + docstrings).
+* README: Python→JS call queue waits for the **WebSocket**, distinct from the HTTP server being ready before the window opens.
+
 ### 0.5.4
 
 * Rename `glue.chromium` → `glue.browsers_launcher` (shared Chrome/Edge launch + find helpers; avoids sounding like a third browser).

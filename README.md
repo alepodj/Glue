@@ -179,7 +179,7 @@ glue.say_hello_js('Python World!')
 glue.start('hello.html')
 ```
 
-Run `python hello.py`. Calls made before the window opens are queued until the WebSocket is ready.
+Run `python hello.py`. Python→JS calls made before the page WebSocket connects are queued and flushed when the bridge is ready (the HTTP server is already up before the window opens).
 
 ---
 
@@ -254,7 +254,7 @@ Pass keyword arguments to `glue.start()`:
 | `title` | `None` | Native window title for PyWebView (defaults to `'Glue'`) |
 | `resizable` | `True` | Allow the user to resize the PyWebView window |
 | `app_mode` | `True` | Chromium `--app` desktop-like window (ignored for PyWebView) |
-| `cmdline_args` | `['--disable-http-cache']` | Extra browser flags |
+| `cmdline_args` | `['--disable-http-cache']` | Extra flags for Chrome/Edge; with `mode='custom'`, this is the **full** `Popen` argv (not browser flags) |
 | `jinja_templates` | `None` | Folder name for Jinja2 templates |
 | `geometry` | `{}` | Per-page size/position |
 | `close_callback` | `None` | Called when a window closes |
@@ -335,7 +335,7 @@ PyWebView defaults are under [PyWebView options](#pywebview-options) (frameless 
 | `'webview'` / `'pywebview'` | Force PyWebView (no browser fallback) |
 | `'chrome'` / `'edge'` | Force that Chromium browser |
 | `None` / `False` | Server only (tests, custom frontends) |
-| `'custom'` | Your own command via `cmdline_args` |
+| `'custom'` | Raw `Popen(cmdline_args)` — full argv escape hatch, not “extra browser flags” |
 
 Try [`01 - hello_world`](examples/01%20-%20hello_world) for auto launch, or [`02 - hello_world_chrome`](examples/02%20-%20hello_world_chrome) to force Chrome.
 

@@ -132,7 +132,7 @@ def open(start_pages: Iterable[Union[str, Dict[str, str]]], options: OptionsDict
     elif mode in WEBVIEW_MODES:
         _open_webview(options, start_urls, required=True)
     elif mode == 'custom':
-        # Advanced escape hatch: run whatever command the user provided
+        # Escape hatch: cmdline_args is the full Popen argv (not browser flags).
         if not isinstance(options['cmdline_args'], list):
             raise TypeError("'cmdline_args' option must be of type List[str]")
         sps.Popen(options['cmdline_args'],

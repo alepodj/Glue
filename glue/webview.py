@@ -37,7 +37,7 @@ _windows: List[Any] = []
 _gui_loop_active: bool = False
 _maximized: Dict[int, bool] = {}
 # Served into glue.js so the page can draw OS-styled chrome when frameless.
-_chrome_config: Dict[str, Any] = {
+_titlebar_config: Dict[str, Any] = {
     'enabled': False,
     'platform': 'windows',
 }
@@ -69,9 +69,9 @@ def is_gui_loop_active() -> bool:
     return _gui_loop_active
 
 
-def chrome_config() -> Dict[str, Any]:
-    """Config embedded in ``glue.js`` for the in-page window chrome."""
-    return dict(_chrome_config)
+def titlebar_config() -> Dict[str, Any]:
+    """Config embedded in ``glue.js`` for the in-page title bar."""
+    return dict(_titlebar_config)
 
 
 def titlebar_height(platform: Optional[str] = None) -> int:
@@ -297,7 +297,7 @@ def _create_windows(
     options: OptionsDictT,
     start_urls: List[str],
 ) -> None:
-    global _windows, _chrome_config
+    global _windows, _titlebar_config
     user_defaults, _, title = _split_webview_options(options)
     create_defaults = _glue_create_defaults(options)
     create_defaults.update(user_defaults)
@@ -306,7 +306,7 @@ def _create_windows(
     resizable = bool(create_defaults.get('resizable', True))
     favicon_path = _default_favicon_path()
     bar_h = titlebar_height()
-    _chrome_config = {
+    _titlebar_config = {
         'enabled': frameless,
         'platform': platform_name(),
         'title': title,
@@ -362,7 +362,7 @@ def open_urls(
     When *required* is True, failures raise ``EnvironmentError`` / ``ValueError``
     instead of returning ``'unavailable'``.
     """
-    global _gui_loop_active, _windows, _chrome_config
+    global _gui_loop_active, _windows, _titlebar_config
 
     if not options.get('block', True) and not _gui_loop_active:
         msg = (
@@ -405,12 +405,12 @@ def open_urls(
             webview.start(**start_kwargs)
         finally:
             _gui_loop_active = False
-            _chrome_config = {'enabled': False, 'platform': platform_name()}
+            _titlebar_config = {'enabled': False, 'platform': platform_name()}
         return 'completed'
     except Exception as exc:
         _gui_loop_active = False
         _windows = []
-        _chrome_config = {'enabled': False, 'platform': platform_name()}
+        _titlebar_config = {'enabled': False, 'platform': platform_name()}
         if required:
             raise EnvironmentError(
                 'Failed to start PyWebView: %s' % exc

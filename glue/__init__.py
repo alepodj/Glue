@@ -30,7 +30,7 @@ import pyparsing as pp
 import glue.browsers as brw
 import glue.settings as _settings
 
-__version__ = '0.6.1'
+__version__ = '0.6.2'
 
 
 mimetypes.add_type('application/javascript', '.js')

@@ -136,6 +136,44 @@ def test_open_chrome_or_edge_uses_run_browser(monkeypatch, mode):
     assert calls == [(mode, ['http://localhost:8000/index.html'])]
 
 
+@pytest.mark.parametrize('browser_name', ['chrome', 'edge'])
+def test_run_browser_uses_launcher_not_module_run(monkeypatch, browser_name):
+    """chrome/edge only find_path; launch must go through browsers_launcher.run."""
+    launched = []
+
+    monkeypatch.setattr(
+        browsers,
+        '_resolved_path',
+        lambda name: r'C:\fake\%s.exe' % name if name == browser_name else None,
+    )
+
+    def fake_launcher_run(path, options, start_urls):
+        launched.append((path, list(start_urls)))
+
+    monkeypatch.setattr(browsers_launcher, 'run', fake_launcher_run)
+    assert browsers._run_browser(
+        browser_name,
+        {'cmdline_args': [], 'app_mode': True},
+        ['http://localhost:8000/index.html'],
+    )
+    assert launched == [
+        (r'C:\fake\%s.exe' % browser_name, ['http://localhost:8000/index.html'])
+    ]
+    assert not hasattr(browsers._browser_modules[browser_name], 'run')
+
+
+def test_run_browser_missing_binary(monkeypatch):
+    monkeypatch.setattr(browsers, '_resolved_path', lambda _name: None)
+    assert (
+        browsers._run_browser(
+            'chrome',
+            {'cmdline_args': [], 'app_mode': True},
+            ['http://localhost:8000/'],
+        )
+        is False
+    )
+
+
 def test_open_custom_uses_popen(monkeypatch):
     calls = []
 

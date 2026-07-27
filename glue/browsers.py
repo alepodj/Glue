@@ -4,6 +4,7 @@ import subprocess as sps
 from collections.abc import Iterable
 from types import ModuleType
 
+import glue.browsers_launcher as browsers_launcher
 import glue.chrome as chm
 import glue.edge as edge
 import glue.webview as webview
@@ -67,11 +68,11 @@ def _resolved_path(browser_name: str) -> str | None:
 
 
 def _run_browser(browser_name: str, options: OptionsDictT, start_urls: list[str]) -> bool:
-    browser_module = _browser_modules[browser_name]
     path = _resolved_path(browser_name)
     if path is None:
         return False
-    browser_module.run(path, options, start_urls)
+    # chrome/edge only locate the binary; launch lives in browsers_launcher.
+    browsers_launcher.run(path, options, start_urls)
     return True
 
 

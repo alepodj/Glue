@@ -1,5 +1,9 @@
 # Change log
 
+### 0.6.2
+
+* Fix Chrome/Edge fallback after PyWebView: `_run_browser` calls `browsers_launcher.run` (chrome/edge modules only locate the binary).
+
 ### 0.6.1
 
 * PyWebView: pass `ui/favicon.ico` (or explicit `icon=`) to both `create_window` and `webview.start` so native window icons work on backends that read either path.

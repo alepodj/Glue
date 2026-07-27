@@ -24,6 +24,7 @@ glue = {
     /** _start_geometry **/
     /** _webview **/
     /** _window_title **/
+    /** _favicon_href **/
 
     _guid: ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
             (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
@@ -150,11 +151,39 @@ glue = {
         if(glue._webview && glue._webview.icon){
             return glue._webview.icon;
         }
+        if(typeof glue._favicon_href === 'string' && glue._favicon_href.length){
+            return glue._favicon_href;
+        }
         let link = document.querySelector('link[rel="icon"], link[rel="shortcut icon"]');
         if(link && link.getAttribute('href')){
             return link.href;
         }
         return '/favicon.ico';
+    },
+
+    _apply_window_chrome: function() {
+        // glue.start(title=…) should win over page <title> for OS caption
+        // (Chrome/Edge app mode) and keep document.title in sync with PyWebView.
+        if(typeof glue._window_title === 'string' && glue._window_title.length){
+            document.title = glue._window_title;
+        }
+        // Caption icon: set early + cache-busted href. Chrome keeps a separate
+        // favicon DB that often ignores Cache-Control on plain /favicon.ico.
+        if(typeof glue._favicon_href === 'string' && glue._favicon_href.length){
+            let head = document.head || document.getElementsByTagName('head')[0];
+            if(head){
+                head.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]').forEach(function(el) {
+                    el.parentNode.removeChild(el);
+                });
+                ['icon', 'shortcut icon'].forEach(function(rel) {
+                    let link = document.createElement('link');
+                    link.rel = rel;
+                    link.type = 'image/x-icon';
+                    link.href = glue._favicon_href;
+                    head.appendChild(link);
+                });
+            }
+        }
     },
 
     _install_webview_chrome: function() {
@@ -416,23 +445,11 @@ html.glue-webview-chrome--linux #glue-titlebar .glue-titlebar__title { opacity: 
         document.body.appendChild(layer);
     },
 
-    _apply_window_chrome: function() {
-        // glue.start(title=…) should win over page <title> for OS caption
-        // (Chrome/Edge app mode) and keep document.title in sync with PyWebView.
-        if(typeof glue._window_title === 'string' && glue._window_title.length){
-            document.title = glue._window_title;
-        }
-        // Chrome/Edge caption icon comes from <link rel="icon"> / /favicon.ico.
-        if(!document.querySelector('link[rel="icon"], link[rel="shortcut icon"]')){
-            let link = document.createElement('link');
-            link.rel = 'icon';
-            link.href = '/favicon.ico';
-            document.head.appendChild(link);
-        }
-    },
-
     _init: function() {
         glue._mock_py_functions();
+        // Run ASAP (not only DOMContentLoaded) so Chromium can see the icon
+        // before it freezes the --app window chrome from a cached favicon.
+        glue._apply_window_chrome();
 
         document.addEventListener("DOMContentLoaded", function(event) {
             let page = window.location.pathname.substring(1);

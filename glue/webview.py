@@ -329,12 +329,20 @@ def _create_windows(
     create_defaults.pop('icon', None)
     favicon_path = _default_favicon_path()
     bar_h = titlebar_height()
+    favicon_href = None
+    if favicon_path:
+        import os
+
+        try:
+            favicon_href = '/favicon.ico?v=%d' % int(os.path.getmtime(favicon_path))
+        except OSError:
+            favicon_href = '/favicon.ico'
     _titlebar_config = {
         'enabled': frameless,
         'platform': platform_name(),
         'title': title,
         # In-page titlebar icon (URL). Override via webview chrome config later if needed.
-        'icon': '/favicon.ico' if favicon_path else None,
+        'icon': favicon_href,
         # Native title bars sit outside the client area; we grow the window by
         # this amount and inset page content so size=(w,h) stays content pixels.
         'titlebar_height': bar_h if frameless else 0,

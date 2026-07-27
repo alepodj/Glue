@@ -85,6 +85,36 @@ def test_glue_js_window_title_null_when_unset():
         glue._start_args.update(prev)
 
 
+def test_glue_js_favicon_href_when_present(tmp_path):
+    favicon = tmp_path / 'favicon.ico'
+    favicon.write_bytes(b'\x00\x00\x01\x00')
+    prev = dict(glue._start_args)
+    prev_root = getattr(glue, 'root_path', None)
+    try:
+        glue.root_path = str(tmp_path)
+        glue._start_args.update(
+            {
+                'size': (800, 600),
+                'position': None,
+                'geometry': {},
+                'disable_cache': False,
+                'title': None,
+            }
+        )
+        js = glue._glue()
+        assert '_favicon_href: "/favicon.ico?v=' in js
+    finally:
+        if prev_root is None:
+            try:
+                delattr(glue, 'root_path')
+            except AttributeError:
+                glue.root_path = None  # type: ignore[attr-defined]
+        else:
+            glue.root_path = prev_root
+        glue._start_args.clear()
+        glue._start_args.update(prev)
+
+
 def test_merge_webview_options_first_class_wins():
     merged = glue._merge_webview_options(
         {'frameless': True, 'debug': False, 'private_mode': True},

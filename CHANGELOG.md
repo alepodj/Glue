@@ -1,5 +1,9 @@
 # Change log
 
+### 0.6.5
+
+* Chrome/Edge favicon: inject cache-busted ``/favicon.ico?v=<mtime>`` as soon as ``/glue.js`` loads (not only on ``DOMContentLoaded``). Chrome's favicon DB often ignores ``Cache-Control`` and was showing a stale localhost icon from earlier Glue examples; Edge could fall back to a generic/Python icon.
+
 ### 0.6.4
 
 * Chrome/Edge: when `glue.start(title=…)` is set, `/glue.js` applies it to `document.title` so the OS caption matches PyWebView (page `<title>` no longer wins). Also injects `<link rel="icon" href="/favicon.ico">` when missing so app-mode can use `ui/favicon.ico`.

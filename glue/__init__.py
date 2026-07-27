@@ -30,7 +30,7 @@ import pyparsing as pp
 import glue.browsers as brw
 import glue.settings as _settings
 
-__version__ = '0.6.4'
+__version__ = '0.6.5'
 
 
 mimetypes.add_type('application/javascript', '.js')
@@ -651,6 +651,22 @@ def spawn(function: Callable[..., Any], *args: Any, **kwargs: Any) -> gvt.Greenl
 # Bottle Routes
 
 
+def _favicon_href() -> str | None:
+    """URL for ``ui/favicon.ico`` with mtime cache-bust (Chrome favicon DB ignores Cache-Control)."""
+    import os
+
+    import glue.webview as webview
+
+    path = webview._default_favicon_path()
+    if not path:
+        return None
+    try:
+        version = int(os.path.getmtime(path))
+    except OSError:
+        version = 0
+    return '/favicon.ico?v=%d' % version
+
+
 def _glue() -> str:
     import glue.webview as webview
 
@@ -673,6 +689,9 @@ def _glue() -> str:
         window_title = window_title.strip()
     page = page.replace(
         '/** _window_title **/', '_window_title: %s,' % _safe_json(window_title)
+    )
+    page = page.replace(
+        '/** _favicon_href **/', '_favicon_href: %s,' % _safe_json(_favicon_href())
     )
     btl.response.content_type = 'application/javascript'
     _set_response_headers(btl.response)

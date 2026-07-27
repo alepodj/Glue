@@ -1,5 +1,9 @@
 # Change log
 
+### 0.6.3
+
+* Fix PyWebView host: do **not** pass `icon=` to `create_window()` (unsupported on PyWebView 6.x — that TypeError made `auto` fall back to Chrome). Keep native icon on `webview.start(icon=…)` only; in-page title bar still uses `/favicon.ico`.
+
 ### 0.6.2
 
 * Fix Chrome/Edge fallback after PyWebView: `_run_browser` calls `browsers_launcher.run` (chrome/edge modules only locate the binary).

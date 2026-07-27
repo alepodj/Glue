@@ -81,3 +81,96 @@ def test_platform_name(monkeypatch):
     assert webview.platform_name() == 'macos'
     monkeypatch.setattr(browsers_launcher.sys, 'platform', 'linux')
     assert webview.platform_name() == 'linux'
+
+
+def test_create_window_does_not_receive_icon(monkeypatch, tmp_path):
+    """PyWebView 6.x rejects create_window(..., icon=); icon is start()-only."""
+    favicon = tmp_path / 'favicon.ico'
+    favicon.write_bytes(b'\x00\x00\x01\x00')
+    glue.root_path = str(tmp_path)
+
+    created = []
+
+    class FakeWebview:
+        @staticmethod
+        def create_window(**kwargs):
+            created.append(kwargs)
+
+            class W:
+                pass
+
+            return W()
+
+    monkeypatch.setattr(webview, 'platform_name', lambda: 'windows')
+    webview._windows.clear()
+    try:
+        webview._create_windows(
+            FakeWebview(),
+            {
+                'size': (800, 600),
+                'position': None,
+                'geometry': {},
+                'webview_options': {'icon': str(favicon)},
+                'resizable': True,
+            },
+            ['http://localhost:8000/index.html'],
+        )
+    finally:
+        webview._windows.clear()
+
+    assert len(created) == 1
+    assert 'icon' not in created[0]
+
+
+def test_open_urls_passes_icon_to_start_only(monkeypatch, tmp_path):
+    favicon = tmp_path / 'favicon.ico'
+    favicon.write_bytes(b'\x00\x00\x01\x00')
+    glue.root_path = str(tmp_path)
+
+    start_calls = []
+    create_calls = []
+
+    class FakeWindow:
+        def expose(self, *_a, **_k):
+            return None
+
+    class FakeWebviewMod:
+        settings = {}
+
+        @staticmethod
+        def create_window(**kwargs):
+            create_calls.append(kwargs)
+            return FakeWindow()
+
+        @staticmethod
+        def start(**kwargs):
+            start_calls.append(kwargs)
+
+    import sys
+
+    monkeypatch.setitem(sys.modules, 'webview', FakeWebviewMod)
+    monkeypatch.setattr(webview, '_register_window_api', lambda: None)
+    monkeypatch.setattr(webview, 'platform_name', lambda: 'windows')
+    webview._gui_loop_active = False
+    webview._windows.clear()
+    try:
+        result = webview.open_urls(
+            {
+                'block': True,
+                'size': (800, 600),
+                'position': None,
+                'geometry': {},
+                'webview_options': {},
+                'resizable': True,
+                'title': 'Test',
+            },
+            ['http://localhost:8000/index.html'],
+            required=False,
+        )
+    finally:
+        webview._gui_loop_active = False
+        webview._windows.clear()
+
+    assert result == 'completed'
+    assert create_calls and 'icon' not in create_calls[0]
+    assert start_calls and start_calls[0].get('icon') == str(favicon)

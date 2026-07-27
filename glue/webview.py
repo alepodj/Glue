@@ -324,13 +324,9 @@ def _create_windows(
 
     frameless = bool(create_defaults.get('frameless', True))
     resizable = bool(create_defaults.get('resizable', True))
-    icon_path = _window_icon_path(options)
-    # Native window icon (taskbar / Alt+Tab) on create_window. ``webview.start(icon=…)``
-    # is also set in open_urls for backends that read it there.
-    # Note: under ``python.exe`` Windows may still show the Python taskbar icon;
-    # freeze with PyInstaller (exe icon) for a reliable app identity.
-    if icon_path:
-        create_defaults['icon'] = icon_path
+    # Native icon belongs on webview.start(icon=…), not create_window — PyWebView
+    # 6.x rejects create_window(..., icon=) and that aborted the whole host.
+    create_defaults.pop('icon', None)
     favicon_path = _default_favicon_path()
     bar_h = titlebar_height()
     _titlebar_config = {

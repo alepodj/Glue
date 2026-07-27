@@ -30,7 +30,7 @@ import pyparsing as pp
 import glue.browsers as brw
 import glue.settings as _settings
 
-__version__ = '0.6.3'
+__version__ = '0.6.4'
 
 
 mimetypes.add_type('application/javascript', '.js')
@@ -349,9 +349,11 @@ def start(
         seconds, and then checks if there are now any websocket connections.
         If not, then Glue closes. In case the user has closed the browser and
         wants to exit the program. *Default:* :code:`1.0` seconds.
-    :param title: Native window title when using PyWebView. *Default:*
-        :code:`'Glue'` (via PyWebView). Ignored for Chrome/Edge (page
-        ``<title>`` applies).
+    :param title: Window title. Applied to PyWebView's native/in-page chrome
+        and, when set, to ``document.title`` via :file:`/glue.js` so Chrome/Edge
+        app-mode captions match. When omitted, Chrome/Edge keep each page's
+        ``<title>``. *Default:* :code:`None` (PyWebView falls back to
+        :code:`'Glue'`).
     :param resizable: Whether the user can resize the window (PyWebView).
         *Default:* :code:`True`. Ignored for Chrome/Edge app windows unless
         you pass matching browser flags yourself.
@@ -664,6 +666,14 @@ def _glue() -> str:
         '/** _start_geometry **/', '_start_geometry: %s,' % _safe_json(start_geometry)
     )
     page = page.replace('/** _webview **/', '_webview: %s,' % _safe_json(webview.titlebar_config()))
+    window_title = _start_args.get('title')
+    if not isinstance(window_title, str) or not window_title.strip():
+        window_title = None
+    else:
+        window_title = window_title.strip()
+    page = page.replace(
+        '/** _window_title **/', '_window_title: %s,' % _safe_json(window_title)
+    )
     btl.response.content_type = 'application/javascript'
     _set_response_headers(btl.response)
     return page

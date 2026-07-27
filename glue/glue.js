@@ -23,6 +23,7 @@ glue = {
     /** _py_functions **/
     /** _start_geometry **/
     /** _webview **/
+    /** _window_title **/
 
     _guid: ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
             (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
@@ -415,11 +416,27 @@ html.glue-webview-chrome--linux #glue-titlebar .glue-titlebar__title { opacity: 
         document.body.appendChild(layer);
     },
 
+    _apply_window_chrome: function() {
+        // glue.start(title=…) should win over page <title> for OS caption
+        // (Chrome/Edge app mode) and keep document.title in sync with PyWebView.
+        if(typeof glue._window_title === 'string' && glue._window_title.length){
+            document.title = glue._window_title;
+        }
+        // Chrome/Edge caption icon comes from <link rel="icon"> / /favicon.ico.
+        if(!document.querySelector('link[rel="icon"], link[rel="shortcut icon"]')){
+            let link = document.createElement('link');
+            link.rel = 'icon';
+            link.href = '/favicon.ico';
+            document.head.appendChild(link);
+        }
+    },
+
     _init: function() {
         glue._mock_py_functions();
 
         document.addEventListener("DOMContentLoaded", function(event) {
             let page = window.location.pathname.substring(1);
+            glue._apply_window_chrome();
             glue._position_window(page);
             glue._install_webview_chrome();
 

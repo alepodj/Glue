@@ -47,6 +47,44 @@ def test_glue_js_start_geometry_uses_size():
         glue._start_args.update(prev)
 
 
+def test_glue_js_includes_window_title_when_set():
+    prev = dict(glue._start_args)
+    try:
+        glue._start_args.update(
+            {
+                'size': (800, 600),
+                'position': None,
+                'geometry': {},
+                'disable_cache': False,
+                'title': 'Faro',
+            }
+        )
+        js = glue._glue()
+        assert '_window_title: "Faro"' in js
+    finally:
+        glue._start_args.clear()
+        glue._start_args.update(prev)
+
+
+def test_glue_js_window_title_null_when_unset():
+    prev = dict(glue._start_args)
+    try:
+        glue._start_args.update(
+            {
+                'size': (800, 600),
+                'position': None,
+                'geometry': {},
+                'disable_cache': False,
+                'title': None,
+            }
+        )
+        js = glue._glue()
+        assert '_window_title: null' in js
+    finally:
+        glue._start_args.clear()
+        glue._start_args.update(prev)
+
+
 def test_merge_webview_options_first_class_wins():
     merged = glue._merge_webview_options(
         {'frameless': True, 'debug': False, 'private_mode': True},

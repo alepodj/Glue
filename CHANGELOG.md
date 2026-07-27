@@ -1,5 +1,9 @@
 # Change log
 
+### 0.6.4
+
+* Chrome/Edge: when `glue.start(title=…)` is set, `/glue.js` applies it to `document.title` so the OS caption matches PyWebView (page `<title>` no longer wins). Also injects `<link rel="icon" href="/favicon.ico">` when missing so app-mode can use `ui/favicon.ico`.
+
 ### 0.6.3
 
 * Fix PyWebView host: do **not** pass `icon=` to `create_window()` (unsupported on PyWebView 6.x — that TypeError made `auto` fall back to Chrome). Keep native icon on `webview.start(icon=…)` only; in-page title bar still uses `/favicon.ico`.

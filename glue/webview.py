@@ -303,6 +303,15 @@ def _default_favicon_path() -> str | None:
     return path if os.path.isfile(path) else None
 
 
+def _window_icon_path(options: OptionsDictT) -> str | None:
+    """Resolve native window icon: explicit ``icon`` / webview_options, else ``ui/favicon.ico``."""
+    raw = options.get('webview_options') or {}
+    explicit = raw.get('icon')
+    if isinstance(explicit, str) and explicit.strip():
+        return explicit
+    return _default_favicon_path()
+
+
 def _create_windows(
     webview: Any,
     options: OptionsDictT,
@@ -315,6 +324,13 @@ def _create_windows(
 
     frameless = bool(create_defaults.get('frameless', True))
     resizable = bool(create_defaults.get('resizable', True))
+    icon_path = _window_icon_path(options)
+    # Native window icon (taskbar / Alt+Tab) on create_window. ``webview.start(icon=…)``
+    # is also set in open_urls for backends that read it there.
+    # Note: under ``python.exe`` Windows may still show the Python taskbar icon;
+    # freeze with PyInstaller (exe icon) for a reliable app identity.
+    if icon_path:
+        create_defaults['icon'] = icon_path
     favicon_path = _default_favicon_path()
     bar_h = titlebar_height()
     _titlebar_config = {
@@ -330,6 +346,7 @@ def _create_windows(
         # Frameless Windows has no OS resize border — glue.js installs edge grips.
         'resize_grips': bool(frameless and resizable and platform_name() == 'windows'),
     }
+
 
     for url in start_urls:
         kwargs = dict(create_defaults)
@@ -394,9 +411,9 @@ def open_urls(
     _, start_kwargs, _title = _split_webview_options(options)
     # No default File/Edit menus unless the app passes menu= explicitly.
     start_kwargs.setdefault('menu', [])
-    favicon_path = _default_favicon_path()
-    if favicon_path and 'icon' not in start_kwargs:
-        start_kwargs['icon'] = favicon_path
+    icon_path = _window_icon_path(options)
+    if icon_path and 'icon' not in start_kwargs:
+        start_kwargs['icon'] = icon_path
 
     try:
         _apply_runtime_settings(webview)

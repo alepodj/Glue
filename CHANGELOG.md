@@ -1,5 +1,10 @@
 # Change log
 
+### 0.6.1
+
+* PyWebView: pass `ui/favicon.ico` (or explicit `icon=`) to both `create_window` and `webview.start` so native window icons work on backends that read either path.
+* GitHub issue templates refreshed; add `.github/ISSUE_TEMPLATE/config.yml` (blank issues off, doc links).
+
 ### 0.6.0
 
 * **Breaking:** Require **Python 3.10+** (drop 3.7–3.9). CI/Tox matrix: 3.10–3.14.

@@ -1,29 +1,36 @@
 from __future__ import annotations
+
+import json as jsn
 import traceback
 import warnings
-from typing import Union, Any, Dict, List, Set, Tuple, Optional, Callable
-from glue.types import OptionsDictT, WebSocketT, WindowGeometryT
-import gevent as gvt
-import json as jsn
+from collections.abc import Callable
+from typing import Any
+
 import bottle as btl
+import gevent as gvt
+
+from glue.types import OptionsDictT, WebSocketT, WindowGeometryT
+
 try:
     import bottle_websocket as wbs
 except ImportError:
     import bottle.ext.websocket as wbs
-import re as rgx
-import os
-import glue.browsers as brw
-import glue.settings as _settings
-import pyparsing as pp
-import random as rnd
-import sys
-import socket
 import mimetypes
+import os
+import random as rnd
+import re as rgx
+import socket
+import sys
 import threading
 import time
 from importlib.resources import as_file, files
 
-__version__ = '0.5.8'
+import pyparsing as pp
+
+import glue.browsers as brw
+import glue.settings as _settings
+
+__version__ = '0.6.0'
 
 
 mimetypes.add_type('application/javascript', '.js')
@@ -32,16 +39,16 @@ _glue_js_reference = files('glue') / 'glue.js'
 with as_file(_glue_js_reference) as _glue_js_path:
     _glue_js: str = _glue_js_path.read_text(encoding='utf-8')
 
-_websockets: List[Tuple[Any, WebSocketT]] = []
-_call_return_values: Dict[Any, Any] = {}
-_call_return_callbacks: Dict[float, Tuple[Callable[..., Any], Optional[Callable[..., Any]]]] = {}
+_websockets: list[tuple[Any, WebSocketT]] = []
+_call_return_values: dict[Any, Any] = {}
+_call_return_callbacks: dict[float, tuple[Callable[..., Any], Callable[..., Any] | None]] = {}
 _call_number: int = 0
-_exposed_functions: Dict[Any, Any] = {}
-_js_functions: List[Any] = []
-_mock_queue: List[Any] = []
-_mock_queue_done: Set[Any] = set()
-_shutdown: Optional[gvt.Greenlet] = None    # Later assigned as global by _websocket_close()
-root_path: str                              # Later assigned as global by init()
+_exposed_functions: dict[Any, Any] = {}
+_js_functions: list[Any] = []
+_mock_queue: list[Any] = []
+_mock_queue_done: set[Any] = set()
+_shutdown: gvt.Greenlet | None = None  # Later assigned as global by _websocket_close()
+root_path: str  # Later assigned as global by init()
 
 # The maximum time (in milliseconds) that Python will try to retrieve a return value for functions executing in JS
 # Can be overridden through `glue.init` with the kwarg `js_result_timeout` (default: 10000)
@@ -51,9 +58,7 @@ _js_result_timeout: int = 10000
 _start_args: OptionsDictT = {}
 
 
-def _merge_webview_options(
-        base: Optional[Dict[str, Any]],
-        **first_class: Any) -> Dict[str, Any]:
+def _merge_webview_options(base: dict[str, Any] | None, **first_class: Any) -> dict[str, Any]:
     """Merge escape-hatch dict with first-class kwargs (explicit values win)."""
     merged = dict(base or {})
     for key, value in first_class.items():
@@ -61,8 +66,9 @@ def _merge_webview_options(
             merged[key] = value
     return merged
 
-_DEFAULT_ALLOWED_EXTENSIONS: List[str] = ['.js', '.html', '.txt', '.htm', '.xhtml', '.vue']
-_DEFAULT_CMDLINE_ARGS: List[str] = ['--disable-http-cache']
+
+_DEFAULT_ALLOWED_EXTENSIONS: list[str] = ['.js', '.html', '.txt', '.htm', '.xhtml', '.vue']
+_DEFAULT_CMDLINE_ARGS: list[str] = ['--disable-http-cache']
 _JS_NAME_RE = rgx.compile(r'^[A-Za-z_][A-Za-z0-9_]*$')
 _this_module = sys.modules[__name__]
 
@@ -70,8 +76,8 @@ _this_module = sys.modules[__name__]
 # Public functions
 
 
-def expose(name_or_function: Optional[Callable[..., Any]] = None) -> Callable[..., Any]:
-    '''Decorator to expose Python callables via Glue's JavaScript API.
+def expose(name_or_function: Callable[..., Any] | None = None) -> Callable[..., Any]:
+    """Decorator to expose Python callables via Glue's JavaScript API.
 
     When an exposed function is called, a callback function can be passed
     immediately afterwards. This callback will be called asynchronously with
@@ -104,17 +110,18 @@ def expose(name_or_function: Optional[Callable[..., Any]] = None) -> Callable[..
 
         Alice said hello from the JavaScript world!
 
-    '''
+    """
     # Deal with '@glue.expose()' - treat as '@glue.expose'
     if name_or_function is None:
         return expose
 
-    if isinstance(name_or_function, str):   # Called as '@glue.expose("my_name")'
+    if isinstance(name_or_function, str):  # Called as '@glue.expose("my_name")'
         name = name_or_function
 
         def decorator(function: Callable[..., Any]) -> Any:
             _expose(name, function)
             return function
+
         return decorator
     else:
         function = name_or_function
@@ -129,21 +136,22 @@ EXPOSED_JS_FUNCTIONS: pp.ZeroOrMore = pp.ZeroOrMore(
         pp.SkipTo(pp.Literal('glue.expose('))
         + pp.Literal('glue.expose(')
         + pp.Optional(
-            pp.Or([pp.nestedExpr(), pp.Word(pp.printables, excludeChars=',')]) + pp.Literal(',')
+            pp.Or([pp.nested_expr(), pp.Word(pp.printables, exclude_chars=',')]) + pp.Literal(',')
         )
     )
     + pp.Suppress(pp.Regex(r'["\']?'))
-    + pp.Word(pp.printables, excludeChars='"\')')
+    + pp.Word(pp.printables, exclude_chars='"\')')
     + pp.Suppress(pp.Regex(r'["\']?\s*\)')),
 )
 
 
 def init(
-        path: str = 'ui',
-        allowed_extensions: Optional[List[str]] = None,
-        js_result_timeout: int = 10000,
-        app_name: Optional[str] = None) -> None:
-    '''Initialise Glue.
+    path: str = 'ui',
+    allowed_extensions: list[str] | None = None,
+    js_result_timeout: int = 10000,
+    app_name: str | None = None,
+) -> None:
+    """Initialise Glue.
 
     This function should be called before :func:`start()` to initialise the
     parameters for the web interface, such as the path to the files to be
@@ -163,7 +171,7 @@ def init(
     :param app_name: Optional. When set, unlocks the default user settings
         path :file:`~/.{app_name}/{app_name}.json` for :func:`settings` /
         :func:`save_settings`. Does not create any files. *Default:* `None`.
-    '''
+    """
     global root_path, _js_functions, _js_result_timeout
     root_path = _get_real_path(path)
 
@@ -171,8 +179,8 @@ def init(
         allowed_extensions = list(_DEFAULT_ALLOWED_EXTENSIONS)
 
     js_functions = set()
-    for root, _, files in os.walk(root_path):
-        for name in files:
+    for root, _, filenames in os.walk(root_path):
+        for name in filenames:
             if not any(name.endswith(ext) for ext in allowed_extensions):
                 continue
 
@@ -180,12 +188,12 @@ def init(
                 with open(os.path.join(root, name), encoding='utf-8') as file:
                     contents = file.read()
                     expose_calls = set()
-                    matches = EXPOSED_JS_FUNCTIONS.parseString(contents).asList()
+                    matches = EXPOSED_JS_FUNCTIONS.parse_string(contents).as_list()
                     for expose_call in matches:
                         expose_calls.add(_validate_js_name(expose_call))
                     js_functions.update(expose_calls)
             except UnicodeDecodeError:
-                pass    # Malformed file probably
+                pass  # Malformed file probably
 
     _js_functions = list(js_functions)
     for js_function in _js_functions:
@@ -195,8 +203,8 @@ def init(
     _settings.configure(app_name)
 
 
-def settings(path: Optional[str] = None) -> Dict[str, Any]:
-    '''Load app settings JSON as a plain dict.
+def settings(path: str | None = None) -> dict[str, Any]:
+    """Load app settings JSON as a plain dict.
 
     With no *path*, uses :file:`~/.{app_name}/{app_name}.json` (requires
     :code:`app_name` on :func:`init`). Missing file returns :code:`{}` and
@@ -204,59 +212,60 @@ def settings(path: Optional[str] = None) -> Dict[str, Any]:
     JSON file (works without :code:`app_name`).
 
     Mutate the dict as usual, then :func:`save_settings` to persist.
-    '''
+    """
     return _settings.load(path)
 
 
-def save_settings(data: Dict[str, Any], path: Optional[str] = None) -> str:
-    '''Write settings dict as JSON. Creates parent directories on first save.
+def save_settings(data: dict[str, Any], path: str | None = None) -> str:
+    """Write settings dict as JSON. Creates parent directories on first save.
 
     With no *path*, writes to the last path used by :func:`settings`, or the
     default path when :code:`app_name` is set. Returns the path written.
-    '''
+    """
     return str(_settings.save(data, path))
 
 
 def settings_path() -> str:
-    '''Return the default settings file path (requires :code:`app_name`).'''
+    """Return the default settings file path (requires :code:`app_name`)."""
     return str(_settings.settings_path())
 
 
 def start(
-        *start_urls: str,
-        mode: Optional[str] = 'auto',
-        host: str = 'localhost',
-        port: int = 8000,
-        block: bool = True,
-        jinja_templates: Optional[str] = None,
-        cmdline_args: Optional[List[str]] = None,
-        size: Optional[Tuple[int, int]] = None,
-        position: Optional[Tuple[int, int]] = None,
-        geometry: Optional[Dict[str, WindowGeometryT]] = None,
-        close_callback: Optional[Callable[..., Any]] = None,
-        app_mode: bool = True,
-        all_interfaces: bool = False,
-        disable_cache: bool = True,
-        default_path: str = 'index.html',
-        app: Optional[btl.Bottle] = None,
-        shutdown_delay: float = 1.0,
-        title: Optional[str] = None,
-        resizable: bool = True,
-        frameless: Optional[bool] = None,
-        easy_drag: Optional[bool] = None,
-        shadow: Optional[bool] = None,
-        debug: Optional[bool] = None,
-        confirm_close: Optional[bool] = None,
-        fullscreen: Optional[bool] = None,
-        minimized: Optional[bool] = None,
-        maximized: Optional[bool] = None,
-        on_top: Optional[bool] = None,
-        min_size: Optional[Tuple[int, int]] = None,
-        icon: Optional[str] = None,
-        gui: Optional[str] = None,
-        menu: Optional[List[Any]] = None,
-        webview_options: Optional[Dict[str, Any]] = None) -> None:
-    '''Start the Glue app.
+    *start_urls: str,
+    mode: str | None = 'auto',
+    host: str = 'localhost',
+    port: int = 8000,
+    block: bool = True,
+    jinja_templates: str | None = None,
+    cmdline_args: list[str] | None = None,
+    size: tuple[int, int] | None = None,
+    position: tuple[int, int] | None = None,
+    geometry: dict[str, WindowGeometryT] | None = None,
+    close_callback: Callable[..., Any] | None = None,
+    app_mode: bool = True,
+    all_interfaces: bool = False,
+    disable_cache: bool = True,
+    default_path: str = 'index.html',
+    app: btl.Bottle | None = None,
+    shutdown_delay: float = 1.0,
+    title: str | None = None,
+    resizable: bool = True,
+    frameless: bool | None = None,
+    easy_drag: bool | None = None,
+    shadow: bool | None = None,
+    debug: bool | None = None,
+    confirm_close: bool | None = None,
+    fullscreen: bool | None = None,
+    minimized: bool | None = None,
+    maximized: bool | None = None,
+    on_top: bool | None = None,
+    min_size: tuple[int, int] | None = None,
+    icon: str | None = None,
+    gui: str | None = None,
+    menu: list[Any] | None = None,
+    webview_options: dict[str, Any] | None = None,
+) -> None:
+    """Start the Glue app.
 
     Suppose you put all the frontend files in a directory called
     :file:`ui`, including your start page :file:`index.html`, then the app
@@ -375,7 +384,7 @@ def start(
         :func:`webview.create_window` / :func:`webview.start` kwargs (e.g.
         :code:`private_mode`, :code:`transparent`). Explicit first-class
         kwargs above win over the same key here. *Default:* :code:`None`.
-    '''
+    """
     if cmdline_args is None:
         cmdline_args = list(_DEFAULT_CMDLINE_ARGS)
     if geometry is None:
@@ -403,9 +412,9 @@ def start(
 
     if all_interfaces:
         warnings.warn(
-            "all_interfaces=True binds on 0.0.0.0 and allows non-loopback "
-            "Glue WebSocket clients; any client that can reach this host can "
-            "call @glue.expose Python functions. Use only on trusted networks.",
+            'all_interfaces=True binds on 0.0.0.0 and allows non-loopback '
+            'Glue WebSocket clients; any client that can reach this host can '
+            'call @glue.expose Python functions. Use only on trusted networks.',
             UserWarning,
             stacklevel=2,
         )
@@ -413,29 +422,32 @@ def start(
     # Omit / None → DEFAULT_WINDOW_SIZE (Chrome/Edge resizeTo + PyWebView create_window).
     if size is None:
         import glue.webview as webview
+
         size = webview.DEFAULT_WINDOW_SIZE
 
-    _start_args.update({
-        'mode': mode,
-        'host': host,
-        'port': port,
-        'block': block,
-        'jinja_templates': jinja_templates,
-        'cmdline_args': cmdline_args,
-        'size': size,
-        'position': position,
-        'geometry': geometry,
-        'title': title,
-        'resizable': resizable,
-        'webview_options': webview_options,
-        'close_callback': close_callback,
-        'app_mode': app_mode,
-        'all_interfaces': all_interfaces,
-        'disable_cache': disable_cache,
-        'default_path': default_path,
-        'app': app,
-        'shutdown_delay': shutdown_delay,
-    })
+    _start_args.update(
+        {
+            'mode': mode,
+            'host': host,
+            'port': port,
+            'block': block,
+            'jinja_templates': jinja_templates,
+            'cmdline_args': cmdline_args,
+            'size': size,
+            'position': position,
+            'geometry': geometry,
+            'title': title,
+            'resizable': resizable,
+            'webview_options': webview_options,
+            'close_callback': close_callback,
+            'app_mode': app_mode,
+            'all_interfaces': all_interfaces,
+            'disable_cache': disable_cache,
+            'default_path': default_path,
+            'app': app,
+            'shutdown_delay': shutdown_delay,
+        }
+    )
 
     if _start_args['port'] == 0:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -445,19 +457,20 @@ def start(
 
     if _start_args['jinja_templates'] is not None:
         from jinja2 import Environment, FileSystemLoader, select_autoescape
+
         if not isinstance(_start_args['jinja_templates'], str):
             raise TypeError("'jinja_templates' start_arg/option must be of type str")
         templates_path = os.path.join(root_path, _start_args['jinja_templates'])
         _start_args['jinja_env'] = Environment(
-            loader=FileSystemLoader(templates_path),
-            autoescape=select_autoescape(['html', 'xml'])
+            loader=FileSystemLoader(templates_path), autoescape=select_autoescape(['html', 'xml'])
         )
 
     # verify shutdown_delay is correct value
     if not isinstance(_start_args['shutdown_delay'], (int, float)):
         raise ValueError(
-            '`shutdown_delay` must be a number, '
-            'got a {}'.format(type(_start_args['shutdown_delay']))
+            '`shutdown_delay` must be a number, got a {}'.format(
+                type(_start_args['shutdown_delay'])
+            )
         )
 
     def run_lambda() -> None:
@@ -480,7 +493,8 @@ def start(
             port=_start_args['port'],
             server=wbs.GeventWebSocketServer,
             quiet=True,
-            app=app)  # Always returns None
+            app=app,
+        )  # Always returns None
 
     def _wait_for_server(*, cooperative: bool = True) -> None:
         """Wait until the server is accepting connections, then open the window.
@@ -525,6 +539,7 @@ def start(
             return bool(_start_args.get('block', True))
         if mode == 'auto':
             import glue.webview as webview
+
             return webview.should_try(_start_args)
         return False
 
@@ -532,8 +547,7 @@ def start(
     # PyWebView's GUI loop blocks the main thread, so the Bottle server must run
     # in a real OS thread in that case — not a greenlet on the same hub.
     if _should_run_server_in_thread():
-        server_thread = threading.Thread(
-            target=run_lambda, name='glue-bottle', daemon=True)
+        server_thread = threading.Thread(target=run_lambda, name='glue-bottle', daemon=True)
         server_thread.start()
         _wait_for_server(cooperative=False)
         # GUI closed: exit so we do not hang joining a daemon server thread.
@@ -551,18 +565,19 @@ def start(
             server_greenlet.join()
 
 
-def get_webview_windows() -> List[Any]:
-    '''Return PyWebView window instances for the current Glue session.
+def get_webview_windows() -> list[Any]:
+    """Return PyWebView window instances for the current Glue session.
 
     Empty when Chrome/Edge (or no window) is used. Useful for menus, title,
     and other native window control via the PyWebView API.
-    '''
+    """
     import glue.webview as webview
+
     return webview.get_windows()
 
 
 def show(*start_urls: str) -> None:
-    '''Show the specified URL(s) in the browser.
+    """Show the specified URL(s) in the browser.
 
     Suppose you have two files in your :file:`ui` folder. The file
     :file:`hello.html` regularly includes :file:`glue.js` and provides
@@ -592,12 +607,12 @@ def show(*start_urls: str) -> None:
     terminates.
 
     :param start_urls: One or more URLs to be opened.
-    '''
+    """
     brw.open(list(start_urls), _start_args)
 
 
-def sleep(seconds: Union[int, float]) -> None:
-    '''A non-blocking sleep call compatible with the Gevent event loop.
+def sleep(seconds: int | float) -> None:
+    """A non-blocking sleep call compatible with the Gevent event loop.
 
     .. note::
         While this function simply wraps :func:`gevent.sleep()`, it is better
@@ -606,12 +621,12 @@ def sleep(seconds: Union[int, float]) -> None:
         respect.
 
     :param seconds: The number of seconds to sleep.
-    '''
+    """
     gvt.sleep(seconds)
 
 
 def spawn(function: Callable[..., Any], *args: Any, **kwargs: Any) -> gvt.Greenlet:
-    '''Spawn a new Greenlet.
+    """Spawn a new Greenlet.
 
     Calling this function will spawn a new :class:`gevent.Greenlet` running
     *function* asynchronously.
@@ -627,7 +642,7 @@ def spawn(function: Callable[..., Any], *args: Any, **kwargs: Any) -> gvt.Greenl
     :param *args: Any positional arguments that should be passed to *function*.
     :param **kwargs: Any key-word arguments that should be passed to
         *function*.
-    '''
+    """
     return gvt.spawn(function, *args, **kwargs)
 
 
@@ -636,16 +651,19 @@ def spawn(function: Callable[..., Any], *args: Any, **kwargs: Any) -> gvt.Greenl
 
 def _glue() -> str:
     import glue.webview as webview
-    start_geometry = {'default': {'size': _start_args['size'],
-                                  'position': _start_args['position']},
-                      'pages':   _start_args['geometry']}
 
-    page = _glue_js.replace('/** _py_functions **/',
-                           '_py_functions: %s,' % _safe_json(list(_exposed_functions.keys())))
-    page = page.replace('/** _start_geometry **/',
-                        '_start_geometry: %s,' % _safe_json(start_geometry))
-    page = page.replace('/** _webview **/',
-                        '_webview: %s,' % _safe_json(webview.titlebar_config()))
+    start_geometry = {
+        'default': {'size': _start_args['size'], 'position': _start_args['position']},
+        'pages': _start_args['geometry'],
+    }
+
+    page = _glue_js.replace(
+        '/** _py_functions **/', '_py_functions: %s,' % _safe_json(list(_exposed_functions.keys()))
+    )
+    page = page.replace(
+        '/** _start_geometry **/', '_start_geometry: %s,' % _safe_json(start_geometry)
+    )
+    page = page.replace('/** _webview **/', '_webview: %s,' % _safe_json(webview.titlebar_config()))
     btl.response.content_type = 'application/javascript'
     _set_response_headers(btl.response)
     return page
@@ -675,16 +693,14 @@ def _static(path: str) -> btl.Response:
     return response
 
 
-def _is_loopback_addr(addr: Optional[str]) -> bool:
+def _is_loopback_addr(addr: str | None) -> bool:
     """True if *addr* is a loopback client address (IPv4/IPv6 / mapped)."""
     if not addr:
         return False
     a = addr.strip().lower()
     if a in ('127.0.0.1', '::1', 'localhost'):
         return True
-    if a.startswith('::ffff:') and a.rsplit(':', 1)[-1] == '127.0.0.1':
-        return True
-    return False
+    return bool(a.startswith('::ffff:') and a.rsplit(':', 1)[-1] == '127.0.0.1')
 
 
 def _websocket(ws: WebSocketT) -> None:
@@ -723,16 +739,16 @@ def _websocket(ws: WebSocketT) -> None:
     _websocket_close(page)
 
 
-BOTTLE_ROUTES: Dict[str, Tuple[Callable[..., Any], Dict[Any, Any]]] = {
-    "/glue.js": (_glue, dict()),
-    "/": (_root, dict()),
-    "/<path:path>": (_static, dict()),
-    "/glue": (_websocket, dict(apply=[wbs.websocket]))
+BOTTLE_ROUTES: dict[str, tuple[Callable[..., Any], dict[Any, Any]]] = {
+    '/glue.js': (_glue, dict()),
+    '/': (_root, dict()),
+    '/<path:path>': (_static, dict()),
+    '/glue': (_websocket, dict(apply=[wbs.websocket])),
 }
 
 
 def register_glue_routes(app: btl.Bottle) -> None:
-    '''Register the required Glue routes with `app`.
+    """Register the required Glue routes with `app`.
 
     .. note::
 
@@ -749,7 +765,7 @@ def register_glue_routes(app: btl.Bottle) -> None:
         >>> middleware = beaker.middleware.SessionMiddleware(app)
         >>> glue.start(app=middleware)
 
-    '''
+    """
     for route_path, route_params in BOTTLE_ROUTES.items():
         route_func, route_kwargs = route_params
         app.route(path=route_path, callback=route_func, **route_kwargs)
@@ -763,7 +779,7 @@ def _safe_json(obj: Any) -> str:
 
 
 def _repeated_send(ws: WebSocketT, msg: str) -> None:
-    for attempt in range(100):
+    for _attempt in range(100):
         try:
             ws.send(msg)
             break
@@ -771,9 +787,9 @@ def _repeated_send(ws: WebSocketT, msg: str) -> None:
             sleep(0.001)
 
 
-def _process_message(message: Dict[str, Any], ws: WebSocketT) -> None:
+def _process_message(message: dict[str, Any], ws: WebSocketT) -> None:
     if 'call' in message:
-        error_info: Dict[str, str] = {}
+        error_info: dict[str, str] = {}
         return_val: Any = None
         try:
             name = message['name']
@@ -786,10 +802,17 @@ def _process_message(message: Dict[str, Any], ws: WebSocketT) -> None:
             return_val = None
             status = 'error'
             error_info['errorText'] = repr(e)
-        _repeated_send(ws, _safe_json({'return': message['call'],
-                                       'status': status,
-                                       'value': return_val,
-                                       'error': error_info}))
+        _repeated_send(
+            ws,
+            _safe_json(
+                {
+                    'return': message['call'],
+                    'status': status,
+                    'value': return_val,
+                    'error': error_info,
+                }
+            ),
+        )
     elif 'return' in message:
         call_id = message['return']
         if call_id in _call_return_callbacks:
@@ -837,21 +860,25 @@ def _import_js_function(f: str) -> None:
     setattr(_this_module, name, lambda *args, _n=name: _js_call(_n, args))
 
 
-def _call_object(name: str, args: Any) -> Dict[str, Any]:
+def _call_object(name: str, args: Any) -> dict[str, Any]:
     global _call_number
     _call_number += 1
     call_id = _call_number + rnd.random()
     return {'call': call_id, 'name': name, 'args': args}
 
 
-def _mock_call(name: str, args: Any) -> Callable[[Optional[Callable[..., Any]], Optional[Callable[..., Any]]], Any]:
+def _mock_call(
+    name: str, args: Any
+) -> Callable[[Callable[..., Any] | None, Callable[..., Any] | None], Any]:
     call_object = _call_object(name, args)
     global _mock_queue
     _mock_queue += [call_object]
     return _call_return(call_object)
 
 
-def _js_call(name: str, args: Any) -> Callable[[Optional[Callable[..., Any]], Optional[Callable[..., Any]]], Any]:
+def _js_call(
+    name: str, args: Any
+) -> Callable[[Callable[..., Any] | None, Callable[..., Any] | None], Any]:
     """Call a JS function on the most recently connected Glue page.
 
     Multi-window note: Python→JS calls are sent to the last websocket only
@@ -865,19 +892,23 @@ def _js_call(name: str, args: Any) -> Callable[[Optional[Callable[..., Any]], Op
     return _call_return(call_object)
 
 
-def _call_return(call: Dict[str, Any]) -> Callable[[Optional[Callable[..., Any]], Optional[Callable[..., Any]]], Any]:
+def _call_return(
+    call: dict[str, Any],
+) -> Callable[[Callable[..., Any] | None, Callable[..., Any] | None], Any]:
     global _js_result_timeout
     call_id = call['call']
 
-    def return_func(callback: Optional[Callable[..., Any]] = None,
-                    error_callback: Optional[Callable[..., Any]] = None) -> Any:
+    def return_func(
+        callback: Callable[..., Any] | None = None, error_callback: Callable[..., Any] | None = None
+    ) -> Any:
         if callback is not None:
             _call_return_callbacks[call_id] = (callback, error_callback)
         else:
-            for w in range(_js_result_timeout):
+            for _w in range(_js_result_timeout):
                 if call_id in _call_return_values:
                     return _call_return_values.pop(call_id)
                 sleep(0.001)
+
     return return_func
 
 

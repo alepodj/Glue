@@ -1,13 +1,13 @@
 from __future__ import annotations
+
 import os
 import subprocess as sps
 import sys
-from typing import List, Optional
 
 from glue.types import OptionsDictT
 
 
-def run(path: str, options: OptionsDictT, start_urls: List[str]) -> None:
+def run(path: str, options: OptionsDictT, start_urls: list[str]) -> None:
     """Launch a Chromium-family browser binary (Chrome, Edge, Chromium, …).
 
     Shared by :mod:`glue.chrome` and :mod:`glue.edge`. Orchestration lives in
@@ -17,13 +17,15 @@ def run(path: str, options: OptionsDictT, start_urls: List[str]) -> None:
         raise TypeError("'cmdline_args' option must be of type List[str]")
     if options['app_mode']:
         for url in start_urls:
-            sps.Popen([path, '--app=%s' % url] +
-                      options['cmdline_args'],
-                      stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
+            sps.Popen(
+                [path, '--app=%s' % url] + options['cmdline_args'],
+                stdout=sps.PIPE,
+                stderr=sps.PIPE,
+                stdin=sps.PIPE,
+            )
     else:
-        args: List[str] = options['cmdline_args'] + start_urls
-        sps.Popen([path, '--new-window'] + args,
-                  stdout=sps.PIPE, stderr=sys.stderr, stdin=sps.PIPE)
+        args: list[str] = options['cmdline_args'] + start_urls
+        sps.Popen([path, '--new-window'] + args, stdout=sps.PIPE, stderr=sys.stderr, stdin=sps.PIPE)
 
 
 def is_windows() -> bool:
@@ -40,7 +42,7 @@ def platform_name() -> str:
     return 'linux'
 
 
-def find_app_path_win(exe_name: str) -> Optional[str]:
+def find_app_path_win(exe_name: str) -> str | None:
     """Resolve an executable via HKCU/HKLM ``App Paths`` (Windows only).
 
     *exe_name* is the registry leaf, e.g. ``chrome.exe`` or ``msedge.exe``.
@@ -62,14 +64,15 @@ def find_app_path_win(exe_name: str) -> Optional[str]:
     return None
 
 
-def find_mac_app(app_bundle: str, binary_name: str) -> Optional[str]:
+def find_mac_app(app_bundle: str, binary_name: str) -> str | None:
     """Locate a macOS ``.app`` binary under ``/Applications`` or via ``mdfind``."""
     default = '/Applications/%s/Contents/MacOS/%s' % (app_bundle, binary_name)
     if os.path.exists(default):
         return default
     try:
         matches = [
-            line for line in sps.check_output(['mdfind', app_bundle]).decode().split('\n')
+            line
+            for line in sps.check_output(['mdfind', app_bundle]).decode().split('\n')
             if line.endswith(app_bundle)
         ]
     except (OSError, sps.CalledProcessError):

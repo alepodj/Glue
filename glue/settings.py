@@ -1,4 +1,5 @@
 """User settings JSON under ``~/.{app_name}/{app_name}.json`` (opt-in via app_name)."""
+
 from __future__ import annotations
 
 import json
@@ -6,17 +7,17 @@ import os
 import re
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
-JsonDict = Dict[str, Any]
+JsonDict = dict[str, Any]
 
 _APP_NAME_RE = re.compile(r'^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$')
 
-_app_name: Optional[str] = None
-_last_path: Optional[Path] = None
+_app_name: str | None = None
+_last_path: Path | None = None
 
 
-def configure(app_name: Optional[str] = None) -> None:
+def configure(app_name: str | None = None) -> None:
     """Set or clear the opt-in app name used for the default settings path."""
     global _app_name, _last_path
     if app_name is None:
@@ -29,14 +30,14 @@ def configure(app_name: Optional[str] = None) -> None:
     if not name or not _APP_NAME_RE.match(name):
         raise ValueError(
             "app_name must be 1–64 chars: letters, digits, '.', '_', or '-'; "
-            "and must start with a letter or digit (got %r)" % (app_name,)
+            'and must start with a letter or digit (got %r)' % (app_name,)
         )
     if _app_name != name:
         _last_path = None
     _app_name = name
 
 
-def app_name() -> Optional[str]:
+def app_name() -> str | None:
     return _app_name
 
 
@@ -44,9 +45,9 @@ def default_path() -> Path:
     """Resolved ``~/.{app_name}/{app_name}.json``. Requires ``app_name``."""
     if not _app_name:
         raise RuntimeError(
-            "No default settings path: pass app_name to glue.init() "
+            'No default settings path: pass app_name to glue.init() '
             "(e.g. glue.init(app_name='myapp')), or pass an explicit path to "
-            "glue.settings(path) / glue.save_settings(data, path)."
+            'glue.settings(path) / glue.save_settings(data, path).'
         )
     return Path.home() / ('.' + _app_name) / (_app_name + '.json')
 
@@ -56,13 +57,13 @@ def settings_path() -> Path:
     return default_path()
 
 
-def _resolve_path(path: Optional[Union[str, Path]] = None) -> Path:
+def _resolve_path(path: str | Path | None = None) -> Path:
     if path is None:
         return default_path()
     return Path(path).expanduser().resolve()
 
 
-def load(path: Optional[Union[str, Path]] = None) -> JsonDict:
+def load(path: str | Path | None = None) -> JsonDict:
     """Load settings JSON.
 
     With no *path*, uses the default location (requires ``app_name``).
@@ -85,7 +86,7 @@ def load(path: Optional[Union[str, Path]] = None) -> JsonDict:
     return data
 
 
-def save(data: JsonDict, path: Optional[Union[str, Path]] = None) -> Path:
+def save(data: JsonDict, path: str | Path | None = None) -> Path:
     """Write *data* as JSON. Creates parent dirs. Atomic replace.
 
     With no *path*, writes to the last path from :func:`load`, or the default

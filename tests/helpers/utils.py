@@ -1,16 +1,16 @@
 import contextlib
 import os
-import sys
 import platform
 import subprocess
+import sys
 import tempfile
 import time
 from pathlib import Path
 
 import psutil
 
-# Path to the test data folder.
-TEST_DATA_DIR = Path(__file__).parent / "data"
+# tests/data (helpers/ is one level under tests/)
+TEST_DATA_DIR = Path(__file__).resolve().parent.parent / 'data'
 
 
 def _process_connections(proc):
@@ -43,18 +43,19 @@ def get_process_listening_port(proc, timeout=30.0):
         time.sleep(0.01)
 
     raise TimeoutError(
-        f'No LISTEN port found for pid {proc.pid} within {timeout}s '
-        f'(platform={platform.system()})'
+        f'No LISTEN port found for pid {proc.pid} within {timeout}s (platform={platform.system()})'
     )
 
 
 @contextlib.contextmanager
 def get_glue_server(example_py, start_html):
-    """Run a Glue example with the mode/port overridden so that no browser is launched and a random port is assigned"""
+    """Run a Glue example with mode/port overridden (no browser; random port)."""
     test = None
 
     try:
-        with tempfile.NamedTemporaryFile(mode='w', dir=os.path.dirname(example_py), delete=False) as test:
+        with tempfile.NamedTemporaryFile(
+            mode='w', dir=os.path.dirname(example_py), delete=False
+        ) as test:
             # Wrap glue.start so mode/port from the example call are overridden
             # (start() would otherwise apply its defaults and ignore pre-set _start_args).
             test.write(f"""
@@ -72,12 +73,12 @@ glue.start = _test_start
 import {os.path.splitext(os.path.basename(example_py))[0]}
 """)
         proc = subprocess.Popen(
-                [sys.executable, test.name],
-                cwd=os.path.dirname(example_py),
-            )
+            [sys.executable, test.name],
+            cwd=os.path.dirname(example_py),
+        )
         glue_port = get_process_listening_port(proc)
 
-        yield f"http://localhost:{glue_port}/{start_html}"
+        yield f'http://localhost:{glue_port}/{start_html}'
 
         proc.terminate()
 

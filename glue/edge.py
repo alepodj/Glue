@@ -1,20 +1,20 @@
 from __future__ import annotations
+
 import os
 from shutil import which
-from typing import Optional
 
-from glue.browsers_launcher import find_app_path_win, is_windows, run
+from glue.browsers_launcher import find_app_path_win, is_windows
 
 name: str = 'Microsoft Edge'
 
 
-def find_path() -> Optional[str]:
+def find_path() -> str | None:
     if not is_windows():
         return None
     return _find_edge_win()
 
 
-def _find_edge_win() -> Optional[str]:
+def _find_edge_win() -> str | None:
     path = find_app_path_win('msedge.exe')
     if path:
         return path

@@ -10,15 +10,15 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 @pytest.fixture
 def driver():
-    TEST_BROWSER = os.environ.get("TEST_BROWSER", "chrome").lower()
+    TEST_BROWSER = os.environ.get('TEST_BROWSER', 'chrome').lower()
 
-    if TEST_BROWSER == "chrome":
+    if TEST_BROWSER == 'chrome':
         options = webdriver.ChromeOptions()
         options.add_argument('--headless=new')
-        options.set_capability("goog:loggingPrefs", {"browser": "ALL"})
+        options.set_capability('goog:loggingPrefs', {'browser': 'ALL'})
 
-        if platform.system() == "Windows":
-            options.binary_location = "C:/Program Files/Google/Chrome/Application/chrome.exe"
+        if platform.system() == 'Windows':
+            options.binary_location = 'C:/Program Files/Google/Chrome/Application/chrome.exe'
 
         driver = webdriver.Chrome(
             service=ChromeService(ChromeDriverManager().install()),
@@ -38,7 +38,7 @@ def driver():
     #     driver = webdriver.Firefox(options=options, capabilities=capabilities, service_log_path=os.path.devnull)
 
     else:
-        raise ValueError(f"Unsupported browser for testing: {TEST_BROWSER}")
+        raise ValueError(f'Unsupported browser for testing: {TEST_BROWSER}')
 
-    with mock.patch("glue.browsers.open"):
+    with mock.patch('glue.browsers.open'):
         yield driver

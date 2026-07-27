@@ -21,10 +21,13 @@ build/
 *.manifest
 *.spec
 
-# Typecheck / test / coverage
+# Typecheck / test / coverage / tox
 .mypy_cache/
+.dmypy.json
+.ruff_cache/
 .pytest_cache/
 .tox/
+.nox/
 .coverage
 .coverage.*
 htmlcov/
@@ -32,6 +35,7 @@ htmlcov/
 nosetests.xml
 coverage.xml
 *.cover
+.hypothesis/
 
 # --- Node (CRA example, etc.) ---
 node_modules/

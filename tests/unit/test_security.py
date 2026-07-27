@@ -1,9 +1,12 @@
+"""Security: glue.js encoding, RPC error shape, loopback checks."""
+
 import json
 
 import bottle
 import pytest
 
 import glue
+import glue.webview as webview
 
 
 @pytest.fixture(autouse=True)
@@ -14,41 +17,17 @@ def _clean_exposed():
     glue._exposed_functions.update(before)
 
 
-def test_expose_rejects_invalid_name():
-    with pytest.raises(ValueError, match='Invalid JavaScript function name'):
-        @glue.expose('bad-name')
-        def _fn():
-            return None
-
-
-def test_expose_rejects_duplicate():
-    def a():
-        return 1
-
-    def b():
-        return 2
-
-    glue._expose('phase1_dup_fn', a)
-    with pytest.raises(ValueError, match='Already exposed'):
-        glue._expose('phase1_dup_fn', b)
-
-
-def test_expose_accepts_valid_identifier():
-    @glue.expose('phase1_ok_fn')
-    def phase1_ok_fn():
-        return 42
-
-    assert 'phase1_ok_fn' in glue._exposed_functions
-
-
 def test_glue_js_py_functions_are_json(monkeypatch):
-    glue._exposed_functions['phase1_json_fn'] = lambda: None
-    glue._start_args.update({
-        'size': None,
-        'position': None,
-        'geometry': {},
-        'disable_cache': True,
-    })
+    glue._exposed_functions['json_fn'] = lambda: None
+    w, h = webview.DEFAULT_WINDOW_SIZE
+    glue._start_args.update(
+        {
+            'size': (w, h),
+            'position': None,
+            'geometry': {},
+            'disable_cache': True,
+        }
+    )
     monkeypatch.setattr(glue, '_set_response_headers', lambda _r: None)
 
     environ = {
@@ -72,8 +51,8 @@ def test_glue_js_py_functions_are_json(monkeypatch):
     encoded = body[start:end]
     names = json.loads(encoded)
     assert isinstance(names, list)
-    assert 'phase1_json_fn' in names
-    assert '"phase1_json_fn"' in encoded
+    assert 'json_fn' in names
+    assert '"json_fn"' in encoded
 
 
 def test_process_message_omits_traceback(monkeypatch):
@@ -83,14 +62,11 @@ def test_process_message_omits_traceback(monkeypatch):
         sent.append(json.loads(msg))
 
     @glue.expose
-    def phase1_boom():
+    def boom():
         raise RuntimeError('secret path /home/user/x')
 
     monkeypatch.setattr(glue, '_repeated_send', fake_send)
-    glue._process_message(
-        {'call': 1, 'name': 'phase1_boom', 'args': []},
-        ws=None,
-    )
+    glue._process_message({'call': 1, 'name': 'boom', 'args': []}, ws=None)
     assert len(sent) == 1
     err = sent[0]['error']
     assert sent[0]['status'] == 'error'
@@ -98,6 +74,37 @@ def test_process_message_omits_traceback(monkeypatch):
     assert 'errorTraceback' not in err
     assert 'Traceback' not in json.dumps(err)
     assert 'RuntimeError' in err['errorText']
+
+
+def test_process_message_success(monkeypatch):
+    sent = []
+
+    def fake_send(_ws, msg):
+        sent.append(json.loads(msg))
+
+    @glue.expose
+    def add(a, b):
+        return a + b
+
+    monkeypatch.setattr(glue, '_repeated_send', fake_send)
+    glue._process_message({'call': 2, 'name': 'add', 'args': [2, 3]}, ws=None)
+    assert len(sent) == 1
+    assert sent[0]['status'] == 'ok'
+    assert sent[0]['return'] == 2
+    assert sent[0]['value'] == 5
+
+
+def test_process_message_unknown_name(monkeypatch):
+    sent = []
+
+    def fake_send(_ws, msg):
+        sent.append(json.loads(msg))
+
+    monkeypatch.setattr(glue, '_repeated_send', fake_send)
+    glue._process_message({'call': 3, 'name': 'missing_fn', 'args': []}, ws=None)
+    assert len(sent) == 1
+    assert sent[0]['status'] == 'error'
+    assert 'errorText' in sent[0]['error']
 
 
 def test_is_loopback_addr():

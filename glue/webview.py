@@ -5,46 +5,49 @@ loads ``http://localhost:...``. ``webview.start()`` must run on the main thread
 and blocks until all windows close — the Bottle server stays in a real OS
 thread when PyWebView is used (gevent greenlets would starve).
 """
+
 from __future__ import annotations
 
 import ctypes
-from typing import Any, Dict, List, Optional
+from typing import Any
 from urllib.parse import urlparse
 
-from glue.types import OptionsDictT
 from glue.browsers_launcher import platform_name
+from glue.types import OptionsDictT
 
 # Keys accepted by webview.start() (not create_window).
-_START_KWARG_KEYS = frozenset({
-    'func',
-    'args',
-    'localization',
-    'gui',
-    'debug',
-    'http_server',
-    'http_port',
-    'user_agent',
-    'private_mode',
-    'storage_path',
-    'menu',
-    'server',
-    'ssl',
-    'server_args',
-    'icon',
-})
+_START_KWARG_KEYS = frozenset(
+    {
+        'func',
+        'args',
+        'localization',
+        'gui',
+        'debug',
+        'http_server',
+        'http_port',
+        'user_agent',
+        'private_mode',
+        'storage_path',
+        'menu',
+        'server',
+        'ssl',
+        'server_args',
+        'icon',
+    }
+)
 
-_windows: List[Any] = []
+_windows: list[Any] = []
 _gui_loop_active: bool = False
-_maximized: Dict[int, bool] = {}
+_maximized: dict[int, bool] = {}
 # Served into glue.js so the page can draw OS-styled chrome when frameless.
-_titlebar_config: Dict[str, Any] = {
+_titlebar_config: dict[str, Any] = {
     'enabled': False,
     'platform': 'windows',
 }
 
 # In-page title bar heights (px). Native OS chrome is outside the client area;
 # these match the CSS bar so we can grow the window and inset content the same way.
-TITLEBAR_HEIGHTS: Dict[str, int] = {
+TITLEBAR_HEIGHTS: dict[str, int] = {
     'windows': 36,
     'macos': 38,
     'linux': 40,
@@ -60,7 +63,7 @@ def available() -> bool:
     return True
 
 
-def get_windows() -> List[Any]:
+def get_windows() -> list[Any]:
     """Return PyWebView window instances created by the current Glue session."""
     return list(_windows)
 
@@ -69,12 +72,12 @@ def is_gui_loop_active() -> bool:
     return _gui_loop_active
 
 
-def titlebar_config() -> Dict[str, Any]:
+def titlebar_config() -> dict[str, Any]:
     """Config embedded in ``glue.js`` for the in-page title bar."""
     return dict(_titlebar_config)
 
 
-def titlebar_height(platform: Optional[str] = None) -> int:
+def titlebar_height(platform: str | None = None) -> int:
     """Pixel height of Glue's in-page title bar for *platform* (or this OS)."""
     name = platform or platform_name()
     return TITLEBAR_HEIGHTS.get(name, TITLEBAR_HEIGHTS['windows'])
@@ -100,11 +103,11 @@ def _page_key(url: str) -> str:
 DEFAULT_WINDOW_SIZE = (1280, 720)
 
 
-def _geometry_kwargs(url: str, options: OptionsDictT) -> Dict[str, Any]:
+def _geometry_kwargs(url: str, options: OptionsDictT) -> dict[str, Any]:
     """Map Glue size/position/geometry onto create_window kwargs."""
     width, height = DEFAULT_WINDOW_SIZE
-    x: Optional[int] = None
-    y: Optional[int] = None
+    x: int | None = None
+    y: int | None = None
 
     size = options.get('size')
     position = options.get('position')
@@ -121,7 +124,7 @@ def _geometry_kwargs(url: str, options: OptionsDictT) -> Dict[str, Any]:
         if page_geo.get('position'):
             x, y = page_geo['position']  # type: ignore[misc]
 
-    kwargs: Dict[str, Any] = {'width': width, 'height': height}
+    kwargs: dict[str, Any] = {'width': width, 'height': height}
     if x is not None and y is not None:
         kwargs['x'] = x
         kwargs['y'] = y
@@ -130,10 +133,10 @@ def _geometry_kwargs(url: str, options: OptionsDictT) -> Dict[str, Any]:
 
 def _split_webview_options(
     options: OptionsDictT,
-) -> tuple[Dict[str, Any], Dict[str, Any], str]:
+) -> tuple[dict[str, Any], dict[str, Any], str]:
     raw = dict(options.get('webview_options') or {})
-    start_kwargs: Dict[str, Any] = {}
-    create_defaults: Dict[str, Any] = {}
+    start_kwargs: dict[str, Any] = {}
+    create_defaults: dict[str, Any] = {}
     for key, value in raw.items():
         if key in _START_KWARG_KEYS:
             start_kwargs[key] = value
@@ -148,9 +151,9 @@ def _split_webview_options(
     return create_defaults, start_kwargs, str(title)
 
 
-def _glue_create_defaults(options: Optional[OptionsDictT] = None) -> Dict[str, Any]:
+def _glue_create_defaults(options: OptionsDictT | None = None) -> dict[str, Any]:
     """Opinionated Glue window defaults: no browser chrome, OS-styled in-page UI."""
-    defaults: Dict[str, Any] = {
+    defaults: dict[str, Any] = {
         # Native title bar / menus off — pages get OS-styled controls via glue.js
         'frameless': True,
         'easy_drag': False,
@@ -183,7 +186,7 @@ _HT_RESIZE = {
 }
 
 
-def _window_hwnd(window: Any) -> Optional[int]:
+def _window_hwnd(window: Any) -> int | None:
     native = getattr(window, 'native', None)
     if native is None:
         return None
@@ -216,6 +219,7 @@ def _start_win32_resize(window: Any, edge: str) -> bool:
     try:
         # Marshal onto the WinForms UI thread when possible.
         from System import Action  # type: ignore
+
         if native is not None and hasattr(native, 'BeginInvoke'):
             native.BeginInvoke(Action(_do))
             return True
@@ -283,16 +287,18 @@ def _register_window_api() -> None:
     glue_mod._expose('webview_start_resize', webview_start_resize)
 
 
-def _default_favicon_path() -> Optional[str]:
+def _default_favicon_path() -> str | None:
     """Prefer ``favicon.ico`` from the Glue UI folder when present."""
     try:
         import glue as glue_mod
+
         root = getattr(glue_mod, 'root_path', None)
     except Exception:
         return None
     if not root:
         return None
     import os
+
     path = os.path.join(root, 'favicon.ico')
     return path if os.path.isfile(path) else None
 
@@ -300,7 +306,7 @@ def _default_favicon_path() -> Optional[str]:
 def _create_windows(
     webview: Any,
     options: OptionsDictT,
-    start_urls: List[str],
+    start_urls: list[str],
 ) -> None:
     global _windows, _titlebar_config
     user_defaults, _, title = _split_webview_options(options)
@@ -339,9 +345,7 @@ def _create_windows(
             # Must be pywebview.api (sync-ish), not Glue websockets — Win32
             # WM_NCLBUTTONDOWN has to run while the mouse button is still down.
             def webview_start_resize(edge: str, _win: Any = window) -> bool:
-                if _maximized.get(
-                    id(_win), bool(getattr(_win, 'maximized', False))
-                ):
+                if _maximized.get(id(_win), bool(getattr(_win, 'maximized', False))):
                     return False
                 return _start_win32_resize(_win, edge)
 
@@ -353,7 +357,7 @@ def _create_windows(
 
 def open_urls(
     options: OptionsDictT,
-    start_urls: List[str],
+    start_urls: list[str],
     *,
     required: bool = False,
 ) -> str:
@@ -372,7 +376,7 @@ def open_urls(
     if not options.get('block', True) and not _gui_loop_active:
         msg = (
             "mode 'webview' requires block=True because pywebview.start() "
-            "must run on the main thread"
+            'must run on the main thread'
         )
         if required:
             raise ValueError(msg)
@@ -382,8 +386,8 @@ def open_urls(
         import webview
     except ImportError:
         if required:
-            raise EnvironmentError(
-                "PyWebView is not installed. Install with: pip install pywebview"
+            raise OSError(
+                'PyWebView is not installed. Install with: pip install pywebview'
             ) from None
         return 'unavailable'
 
@@ -417,9 +421,7 @@ def open_urls(
         _windows = []
         _titlebar_config = {'enabled': False, 'platform': platform_name()}
         if required:
-            raise EnvironmentError(
-                'Failed to start PyWebView: %s' % exc
-            ) from exc
+            raise OSError('Failed to start PyWebView: %s' % exc) from exc
         # Avoid leaving half-configured state before Chrome/Edge fallback.
         try:
             webview.windows.clear()

@@ -1,16 +1,17 @@
 from __future__ import annotations
+
 import subprocess as sps
-from typing import Union, List, Dict, Iterable, Optional
+from collections.abc import Iterable
 from types import ModuleType
 
-from glue.types import OptionsDictT
 import glue.chrome as chm
 import glue.edge as edge
 import glue.webview as webview
 from glue.browsers_launcher import is_windows
+from glue.types import OptionsDictT
 
-_browser_paths: Dict[str, str] = {}
-_browser_modules: Dict[str, ModuleType] = {
+_browser_paths: dict[str, str] = {}
+_browser_modules: dict[str, ModuleType] = {
     'chrome': chm,
     'edge': edge,
 }
@@ -26,10 +27,10 @@ def webview_session_completed() -> bool:
     return _webview_session_completed
 
 
-def _build_url_from_dict(page: Dict[str, str], options: OptionsDictT) -> str:
+def _build_url_from_dict(page: dict[str, str], options: OptionsDictT) -> str:
     scheme = page.get('scheme', 'http')
     host = page.get('host', 'localhost')
-    port = page.get('port', options["port"])
+    port = page.get('port', options['port'])
     path = page.get('path', '')
     if not isinstance(port, (int, str)):
         raise TypeError("'port' option must be an integer")
@@ -43,8 +44,8 @@ def _build_url_from_string(page: str, options: OptionsDictT) -> str:
     return base_url + page
 
 
-def _build_urls(start_pages: Iterable[Union[str, Dict[str, str]]], options: OptionsDictT) -> List[str]:
-    urls: List[str] = []
+def _build_urls(start_pages: Iterable[str | dict[str, str]], options: OptionsDictT) -> list[str]:
+    urls: list[str] = []
 
     for page in start_pages:
         if isinstance(page, dict):
@@ -56,7 +57,7 @@ def _build_urls(start_pages: Iterable[Union[str, Dict[str, str]]], options: Opti
     return urls
 
 
-def _resolved_path(browser_name: str) -> Optional[str]:
+def _resolved_path(browser_name: str) -> str | None:
     path = _browser_paths.get(browser_name)
     if path is None:
         path = _browser_modules[browser_name].find_path()
@@ -65,7 +66,7 @@ def _resolved_path(browser_name: str) -> Optional[str]:
     return path
 
 
-def _run_browser(browser_name: str, options: OptionsDictT, start_urls: List[str]) -> bool:
+def _run_browser(browser_name: str, options: OptionsDictT, start_urls: list[str]) -> bool:
     browser_module = _browser_modules[browser_name]
     path = _resolved_path(browser_name)
     if path is None:
@@ -74,7 +75,7 @@ def _run_browser(browser_name: str, options: OptionsDictT, start_urls: List[str]
     return True
 
 
-def _auto_browser_order() -> List[str]:
+def _auto_browser_order() -> list[str]:
     # Prefer Chrome/Chromium everywhere for consistent app-mode behavior.
     # On Windows only, fall back to Edge if Chrome/Chromium is missing.
     if is_windows():
@@ -82,7 +83,7 @@ def _auto_browser_order() -> List[str]:
     return ['chrome']
 
 
-def _open_webview(options: OptionsDictT, start_urls: List[str], *, required: bool) -> str:
+def _open_webview(options: OptionsDictT, start_urls: list[str], *, required: bool) -> str:
     """Launch via PyWebView. Returns webview.open_urls status string."""
     global _webview_session_completed
     result = webview.open_urls(options, start_urls, required=required)
@@ -91,7 +92,7 @@ def _open_webview(options: OptionsDictT, start_urls: List[str], *, required: boo
     return result
 
 
-def _open_auto(options: OptionsDictT, start_urls: List[str]) -> None:
+def _open_auto(options: OptionsDictT, start_urls: list[str]) -> None:
     # PyWebView (all OS) → Chrome (all OS) → Edge (Windows only)
     if webview.should_try(options):
         result = _open_webview(options, start_urls, required=False)
@@ -103,18 +104,18 @@ def _open_auto(options: OptionsDictT, start_urls: List[str]) -> None:
         if _run_browser(browser_name, options, start_urls):
             return
     if is_windows():
-        raise EnvironmentError(
+        raise OSError(
             "Can't find PyWebView, Google Chrome/Chromium, or Microsoft Edge. "
-            "Install pywebview (preferred), Chrome/Chromium, or Edge."
+            'Install pywebview (preferred), Chrome/Chromium, or Edge.'
         )
-    raise EnvironmentError(
+    raise OSError(
         "Can't find PyWebView or Google Chrome/Chromium. "
-        "Install pywebview (preferred) or Chrome/Chromium to run Glue apps "
-        "on this platform."
+        'Install pywebview (preferred) or Chrome/Chromium to run Glue apps '
+        'on this platform.'
     )
 
 
-def open(start_pages: Iterable[Union[str, Dict[str, str]]], options: OptionsDictT) -> None:
+def open(start_pages: Iterable[str | dict[str, str]], options: OptionsDictT) -> None:
     global _webview_session_completed
     if not webview.is_gui_loop_active():
         _webview_session_completed = False
@@ -135,11 +136,10 @@ def open(start_pages: Iterable[Union[str, Dict[str, str]]], options: OptionsDict
         # Escape hatch: cmdline_args is the full Popen argv (not browser flags).
         if not isinstance(options['cmdline_args'], list):
             raise TypeError("'cmdline_args' option must be of type List[str]")
-        sps.Popen(options['cmdline_args'],
-                  stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
+        sps.Popen(options['cmdline_args'], stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
     elif mode in _browser_modules:
         if not _run_browser(mode, options, start_urls):
-            raise EnvironmentError("Can't find %s installation" % _browser_modules[mode].name)
+            raise OSError("Can't find %s installation" % _browser_modules[mode].name)
     else:
         raise ValueError(
             "Unsupported mode %r. Use 'auto', 'webview', 'chrome', "
@@ -151,5 +151,5 @@ def set_path(browser_name: str, path: str) -> None:
     _browser_paths[browser_name] = path
 
 
-def get_path(browser_name: str) -> Optional[str]:
+def get_path(browser_name: str) -> str | None:
     return _browser_paths.get(browser_name)

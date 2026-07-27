@@ -1,9 +1,14 @@
 # Change log
 
-### 0.5.8
+### 0.6.0
 
 * **Breaking:** Require **Python 3.10+** (drop 3.7–3.9). CI/Tox matrix: 3.10–3.14.
 * Use stdlib `importlib.resources` and `typing.TypeAlias` / `TypedDict`; drop `importlib_resources` and `typing_extensions` dependencies.
+* Reorganize tests into `test_<area>` modules (`init`, `expose`, `browsers`, `webview`, `security`, `settings`, `routes`); helpers under `tests/helpers/`; rename integration cases; add coverage for modes, routes, cache headers, RPC, and default window size.
+* Add **Ruff** (lint + format) via `pyproject.toml`; Tox envs `lint` / `typecheck` / `py310`–`py314`; CI runs lint and typecheck as separate jobs.
+* Tox on Windows: pass/set `USERNAME` for Python 3.13+ `tmp_path`; require pytest 8.1+; drop unused `tox-pyenv` (removes pyenv noise).
+* Use pyparsing snake_case APIs (`nested_expr`, `parse_string`, …) so the suite runs without deprecation warnings.
+* Expand `README-developers.md` (requirements roles, Tox how-to, contributor workflow); ignore Ruff/mypy/tool caches in `.gitignore`.
 
 ### 0.5.7
 

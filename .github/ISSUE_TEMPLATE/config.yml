@@ -1,0 +1,12 @@
+# Controls the "New issue" chooser on GitHub.
+# https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/configuring-issue-templates-for-your-repository
+
+blank_issues_enabled: false
+
+contact_links:
+  - name: Glue README
+    url: https://github.com/alepodj/Glue#readme
+    about: Install, quick start, hosts, and API overview — check here before opening an issue.
+  - name: Developer guide
+    url: https://github.com/alepodj/Glue/blob/main/README-developers.md
+    about: Tests, Tox, lint/typecheck, and contributor workflow.

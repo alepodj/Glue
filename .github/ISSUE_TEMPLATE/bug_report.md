@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Report something that is broken or unexpected
 title: ''
 labels: bug
 assignees: ''
@@ -8,28 +8,32 @@ assignees: ''
 ---
 
 **Glue version**
-Please state the version of Glue you're using.
+e.g. `0.6.0` (`import glue; print(glue.__version__)`)
 
 **Describe the bug**
-A clear and concise description of what the bug is.
+A clear and concise description of what went wrong.
 
 **To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+Minimal steps or a small script + `ui/` snippet that shows the bug:
+
+```python
+import glue
+
+glue.init(path='ui')  # optional: app_name='...'
+# ...
+glue.start(mode='auto')  # or 'webview' / 'chrome' / 'edge' / None
+```
 
 **Expected behavior**
-A clear and concise description of what you expected to happen.
+What you expected to happen instead.
 
 **System Information**
- - OS: [e.g. Windows 10 x64, Linux Ubuntu, macOS 12]
- - Window host: [e.g. PyWebView / WebView2, Chrome 120, Edge 120]
- - Python Distribution: [e.g. Python.org 3.12, Anaconda 3.11]
+- OS: [e.g. Windows 11, macOS 14, Ubuntu 24.04]
+- Python: [e.g. 3.12 — Glue requires 3.10+]
+- Window host / `mode`: [e.g. `auto` → PyWebView; or Chrome 120 / Edge 120 / `mode=None`]
 
 **Screenshots**
-If applicable, add screenshots to help explain your problem.
+If applicable, add screenshots or console output.
 
 **Additional context**
-Add any other context about the problem here.
+Anything else that might help (stack traces, how you installed Glue, etc.).

@@ -1,6 +1,6 @@
 ---
 name: Help me
-about: Get help with Glue
+about: Get help using Glue
 title: ''
 labels: help wanted
 assignees: ''
@@ -8,26 +8,35 @@ assignees: ''
 ---
 
 **Describe the problem**
-A clear and concise description of what you're trying to accomplish, and where you're having difficulty.
+What you are trying to do, and where you are stuck.
 
 **Code snippet(s)**
-Here is some code that can be easily used to reproduce the problem or understand what I need help with.
+Please include a small example someone can run. Issues without a reproducible snippet are harder to answer and may be closed.
 
-- [ ] I know that if I don't provide sample code that allows someone to quickly step into my shoes, I may not get the help I want or my issue may be closed.
+- [ ] I included a minimal Python + HTML/JS example below.
 
 ```python
 import glue
 
-...
+glue.init(path='ui')
+# ...
+glue.start(mode='auto')
 ```
 
 ```html
+<!DOCTYPE html>
 <html>
-   ...
+  <head>
+    <script type="text/javascript" src="/glue.js"></script>
+  </head>
+  <body>
+    ...
+  </body>
 </html>
 ```
 
-**Desktop (please complete the following information):**
- - OS: [e.g. Windows 11, macOS 14, Ubuntu 24.04]
- - Window host [e.g. PyWebView, Chrome, Edge]
- - Glue / Python version [e.g. Glue 0.3.1 / Python 3.12]
+**System Information**
+- OS: [e.g. Windows 11, macOS 14, Ubuntu 24.04]
+- Python: [e.g. 3.12 — Glue requires 3.10+]
+- Glue version: [e.g. 0.6.0]
+- Window host / `mode`: [e.g. PyWebView / Chrome / Edge / `mode=None`]

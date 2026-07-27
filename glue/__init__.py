@@ -30,7 +30,7 @@ import pyparsing as pp
 import glue.browsers as brw
 import glue.settings as _settings
 
-__version__ = '0.6.5'
+__version__ = '0.6.6'
 
 
 mimetypes.add_type('application/javascript', '.js')
@@ -653,8 +653,6 @@ def spawn(function: Callable[..., Any], *args: Any, **kwargs: Any) -> gvt.Greenl
 
 def _favicon_href() -> str | None:
     """URL for ``ui/favicon.ico`` with mtime cache-bust (Chrome favicon DB ignores Cache-Control)."""
-    import os
-
     import glue.webview as webview
 
     path = webview._default_favicon_path()
@@ -665,6 +663,79 @@ def _favicon_href() -> str | None:
     except OSError:
         version = 0
     return '/favicon.ico?v=%d' % version
+
+
+_ICON_LINK_RE = rgx.compile(
+    r'<link\b[^>]*\brel\s*=\s*["\'](?:shortcut\s+)?icon["\']',
+    rgx.IGNORECASE,
+)
+_HEAD_RE = rgx.compile(r'<head\b[^>]*>', rgx.IGNORECASE)
+
+
+def _inject_html_favicon(html: str) -> str:
+    """Insert a favicon ``<link>`` after ``<head>`` when ``ui/favicon.ico`` exists.
+
+    Chromium ``--app`` windows read the icon from the first HTML document. Doing
+    this server-side (not in ``glue.js``) puts the tag in the bytes before render.
+    """
+    href = _favicon_href()
+    if not href or _ICON_LINK_RE.search(html):
+        return html
+    match = _HEAD_RE.search(html)
+    if not match:
+        return html
+    link = '<link rel="icon" type="image/x-icon" href="%s">' % href
+    return html[: match.end()] + '\n    ' + link + html[match.end() :]
+
+
+def _response_body_text(response: btl.Response) -> str | None:
+    """Best-effort decode of a Bottle response body as text."""
+    body = getattr(response, 'body', None)
+    if body is None:
+        return None
+    if isinstance(body, str):
+        return body
+    if isinstance(body, bytes):
+        try:
+            return body.decode('utf-8')
+        except UnicodeDecodeError:
+            return None
+    read = getattr(body, 'read', None)
+    if callable(read):
+        data = read()
+        if isinstance(data, str):
+            return data
+        if isinstance(data, bytes):
+            try:
+                return data.decode('utf-8')
+            except UnicodeDecodeError:
+                return None
+    return None
+
+
+def _maybe_inject_favicon_html(path: str, response: btl.Response) -> btl.Response:
+    """Rewrite HTML responses to include ``/favicon.ico`` when present on disk."""
+    lower = path.lower().split('?', 1)[0]
+    if not (lower.endswith('.html') or lower.endswith('.htm')):
+        return response
+    status = getattr(response, 'status_code', None)
+    if status is None:
+        status = int(str(getattr(response, 'status', '200')).split()[0])
+    if int(status) >= 400:
+        return response
+    text = _response_body_text(response)
+    if text is None:
+        return response
+    # Always rebuild: static_file bodies are file-like and consumed by the read above.
+    injected = _inject_html_favicon(text)
+    out = btl.HTTPResponse(injected, status=status)
+    content_type = response.get_header('Content-Type') or 'text/html; charset=UTF-8'
+    out.set_header('Content-Type', content_type)
+    for name, value in response.headers.items():
+        if name.lower() in ('content-type', 'content-length'):
+            continue
+        out.set_header(name, value)
+    return out
 
 
 def _glue() -> str:
@@ -718,6 +789,7 @@ def _static(path: str) -> btl.Response:
     if response is None:
         response = btl.static_file(path, root=root_path)
 
+    response = _maybe_inject_favicon_html(path, response)
     _set_response_headers(response)
     return response
 

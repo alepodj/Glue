@@ -1,5 +1,9 @@
 # Change log
 
+### 0.6.6
+
+* Chrome/Edge favicon: when ``ui/favicon.ico`` exists, inject a cache-busted ``<link rel="icon">`` into served HTML ``<head>`` (before the browser parses the page). Skip if the page already declares an icon. ``glue.js`` still applies a favicon link as a backup.
+
 ### 0.6.5
 
 * Chrome/Edge favicon: inject cache-busted ``/favicon.ico?v=<mtime>`` as soon as ``/glue.js`` loads (not only on ``DOMContentLoaded``). Chrome's favicon DB often ignores ``Cache-Control`` and was showing a stale localhost icon from earlier Glue examples; Edge could fall back to a generic/Python icon.

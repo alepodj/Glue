@@ -271,7 +271,7 @@ Pass keyword arguments to `glue.start()`:
 | `maximized` | `False` | PyWebView | webview | Start maximized to the work area |
 | `on_top` | `False` | PyWebView | webview | Keep the window above other windows |
 | `min_size` | `(200, 100)` | PyWebView | webview | Smallest `(width, height)` the user can resize to |
-| `icon` | `ui/favicon.ico` if present | PyWebView | webview | App icon in the taskbar/dock (`.ico` / `.icns`); title bar uses `/favicon.ico` or `<link rel="icon">` |
+| `icon` | `ui/favicon.ico` if present | PyWebView | webview / chrome / edge | **PyWebView:** app icon in the taskbar/dock (`.ico` / `.icns`). **Chrome/Edge:** caption icon comes from the page favicon — Glue injects `<link rel="icon" href="/favicon.ico?v=…">` into served HTML when `ui/favicon.ico` exists |
 | `gui` | auto | PyWebView | webview | Force a specific web engine backend (`'edgechromium'`, `'qt'`, `'gtk'`, …) |
 | `menu` | `[]` | PyWebView | webview | Native menu bar (`Menu` / `MenuAction` from PyWebView); empty = no menus |
 | `webview_options` | `{}` | PyWebView | webview | Escape hatch for other [PyWebView](https://pywebview.flowrl.com/api/) kwargs; first-class kwargs win on conflict |
@@ -303,7 +303,7 @@ Default order for `mode='auto'`:
 2. **Chrome/Chromium** — app mode (`--app`) on all platforms
 3. **Edge** — Windows only, if Chrome is missing
 
-`size` / `position` / `geometry` apply on PyWebView as window kwargs, and on Chrome/Edge via `/glue.js` (`resizeTo` / `moveTo` on page load).
+`size` / `position` / `geometry` apply on PyWebView as window kwargs, and on Chrome/Edge via `/glue.js` (`resizeTo` / `moveTo` on page load). When `ui/favicon.ico` is present, Glue injects a favicon `<link>` into served HTML so Chrome/Edge `--app` windows can show it in the caption.
 
 PyWebView window options are first-class on [`glue.start()`](#app-options) (plus `webview_options` escape hatch).
 

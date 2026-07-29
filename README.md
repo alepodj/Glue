@@ -29,7 +29,11 @@ A little and opinionated Python library for making **desktop apps with HTML, CSS
 
 ## Install
 
-Glue is not on PyPI yet — install from this repo or GitHub.
+```shell
+pip install glue-ui
+```
+
+That installs the **PyPI** project `glue-ui`. You still `import glue` in Python (the import name is unchanged).
 
 From a clone of this repo:
 
@@ -49,11 +53,12 @@ Directly from GitHub (no local clone required):
 pip install "git+https://github.com/alepodj/Glue.git@main"
 ```
 
-Optional extras (`.` = the package in the current directory):
+Optional extras:
 
 ```shell
-pip install ".[jinja2]"   # Jinja2 templates
-pip install ".[build]"    # PyInstaller for packaging
+pip install "glue-ui[jinja2]"   # Jinja2 templates
+pip install "glue-ui[build]"    # PyInstaller for packaging
+# From a clone: pip install ".[jinja2]" / pip install ".[build]"
 ```
 
 ---
@@ -355,7 +360,7 @@ With `block=False`, `mode='auto'` skips PyWebView (its GUI loop needs the main t
 ## Package with PyInstaller
 
 1. Use a clean virtualenv with only what you need
-2. `pip install ".[build]"`
+2. `pip install "glue-ui[build]"` (or `pip install ".[build]"` from a clone)
 3. From your app folder: `python -m glue your_script.py ui`
 4. Check `dist/`, then ship with `--onefile --noconsole` when ready
 

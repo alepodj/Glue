@@ -8,7 +8,7 @@ try:
     import PyInstaller.__main__ as pyi
 except ImportError as exc:
     raise SystemExit(
-        "PyInstaller is required for `python -m glue`. Install with: pip install 'Glue[build]'"
+        "PyInstaller is required for `python -m glue`. Install with: pip install 'glue-ui[build]'"
     ) from exc
 
 parser: ArgumentParser = ArgumentParser(

@@ -152,6 +152,82 @@ Chrome is required for integration tests inside each `py3xx` env when the full `
 
 ---
 
+## Releasing to PyPI
+
+**Model:** you do **not** publish on every commit. PyPI versions are permanent and unique. Instead:
+
+1. Bump the version in the repo and merge to `main`
+2. Push a git tag `vX.Y.Z` that matches that version  
+3. GitHub Actions (`.github/workflows/publish.yml`) builds the package, uploads **`glue-ui`** to PyPI, and creates a GitHub Release
+
+Users install with `pip install glue-ui` and still `import glue`.
+
+### Why not every push?
+
+A normal `git push` of commits would either spam junk versions or fail when the version number did not change. Tags = “this commit is a release.”
+
+### One-time setup (you must do this once)
+
+#### A. PyPI account
+
+1. Create an account at [https://pypi.org/account/register/](https://pypi.org/account/register/)
+2. Enable **2FA** (required for publishing)
+
+#### B. GitHub Environment named `pypi`
+
+1. Open your repo on GitHub → **Settings** → **Environments** → **New environment**
+2. Name it exactly: `pypi`
+3. (Optional) Add a required reviewer or wait timer; leave empty for automatic publish
+
+#### C. Trusted Publisher on PyPI (no API token)
+
+Preferred: GitHub proves identity via OIDC — no long-lived `pypi_token` secret.
+
+1. Log in to PyPI → **Your account** → **Publishing**  
+   ([https://pypi.org/manage/account/publishing/](https://pypi.org/manage/account/publishing/))
+2. Under **Pending publishers** (first release) fill in:
+
+   | Field | Value |
+   |-------|--------|
+   | PyPI Project Name | `glue-ui` |
+   | Owner | `alepodj` |
+   | Repository name | `Glue` |
+   | Workflow name | `publish.yml` |
+   | Environment name | `pypi` |
+
+3. Save. The first successful workflow run **creates** the `glue-ui` project and attaches you as owner.
+
+**Name note:** Distribution name is `glue-ui`; import stays `glue`. If PyPI rejects `glue-ui`, try `alepodj-glue`.
+
+#### D. Commit and push the workflow
+
+Ensure `main` includes `.github/workflows/publish.yml` **before** you push the first version tag (so the tag’s workflow file exists).
+
+### Each release (after setup)
+
+1. Update `__version__` in `glue/__init__.py` and `version=` in `setup.py` to the same value (e.g. `0.6.6`)
+2. Add a CHANGELOG section for that version
+3. Commit and push to `main`
+4. Tag and push the tag (PowerShell example):
+
+```powershell
+git checkout main
+git pull
+git tag v0.6.6
+git push origin v0.6.6
+```
+
+5. Watch **Actions** → **Publish** — it should go green
+6. Confirm [https://pypi.org/project/glue-ui/](https://pypi.org/project/glue-ui/) and GitHub → **Releases**
+
+If the tag version ≠ `setup.py` version, the workflow fails on purpose (fix the version, delete the bad tag if needed, retag).
+
+### Optional: TestPyPI first
+
+For a dry run, add a second Trusted Publisher pointing at TestPyPI and a separate workflow; not required for day-to-day releases.
+
+---
+
 ## Suggested workflow for new contributors
 
 1. Install runtime + **test** requirements; run `pytest tests/unit` and `ruff check`.

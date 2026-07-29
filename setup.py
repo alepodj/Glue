@@ -4,7 +4,7 @@ with open('README.md', encoding='utf-8') as read_me:
     long_description = read_me.read()
 
 setup(
-    name='Glue',
+    name='glue-ui',
     version='0.6.6',
     author='alepodj',
     url='https://github.com/alepodj/Glue',

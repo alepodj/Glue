@@ -156,9 +156,7 @@ def test_run_browser_uses_launcher_not_module_run(monkeypatch, browser_name):
         {'cmdline_args': [], 'app_mode': True},
         ['http://localhost:8000/index.html'],
     )
-    assert launched == [
-        (r'C:\fake\%s.exe' % browser_name, ['http://localhost:8000/index.html'])
-    ]
+    assert launched == [(r'C:\fake\%s.exe' % browser_name, ['http://localhost:8000/index.html'])]
     assert not hasattr(browsers._browser_modules[browser_name], 'run')
 
 

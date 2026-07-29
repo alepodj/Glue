@@ -758,12 +758,8 @@ def _glue() -> str:
         window_title = None
     else:
         window_title = window_title.strip()
-    page = page.replace(
-        '/** _window_title **/', '_window_title: %s,' % _safe_json(window_title)
-    )
-    page = page.replace(
-        '/** _favicon_href **/', '_favicon_href: %s,' % _safe_json(_favicon_href())
-    )
+    page = page.replace('/** _window_title **/', '_window_title: %s,' % _safe_json(window_title))
+    page = page.replace('/** _favicon_href **/', '_favicon_href: %s,' % _safe_json(_favicon_href()))
     btl.response.content_type = 'application/javascript'
     _set_response_headers(btl.response)
     return page

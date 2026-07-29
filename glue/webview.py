@@ -351,7 +351,6 @@ def _create_windows(
         'resize_grips': bool(frameless and resizable and platform_name() == 'windows'),
     }
 
-
     for url in start_urls:
         kwargs = dict(create_defaults)
         kwargs.update(_geometry_kwargs(url, options))

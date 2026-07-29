@@ -5,7 +5,7 @@ with open('README.md', encoding='utf-8') as read_me:
 
 setup(
     name='glue-ui',
-    version='0.6.6',
+    version='0.6.7',
     author='alepodj',
     url='https://github.com/alepodj/Glue',
     packages=['glue'],
@@ -23,6 +23,7 @@ setup(
     extras_require={
         'jinja2': ['jinja2>=2.10'],
         'build': ['pyinstaller'],
+        'splash': ['glfw>=2.10', 'Pillow'],
     },
     python_requires='>=3.10',
     description='For little HTML GUI applications, with easy Python/JS interop',

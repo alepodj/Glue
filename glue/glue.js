@@ -471,6 +471,24 @@ html.glue-webview-chrome--linux #glue-titlebar .glue-titlebar__title { opacity: 
                     let call = glue._mock_queue.shift();
                     glue._websocket.send(glue._toJSON(call));
                 }
+
+                // Cross-host first-paint signal. Waiting for window.load and
+                // two animation frames lets the initial page render before a
+                // native startup splash begins fading away.
+                let signalPageReady = function() {
+                    requestAnimationFrame(function() {
+                        requestAnimationFrame(function() {
+                            if(glue._websocket.readyState === WebSocket.OPEN){
+                                glue._websocket.send(glue._toJSON({'event': 'page-ready'}));
+                            }
+                        });
+                    });
+                };
+                if(document.readyState === 'complete'){
+                    signalPageReady();
+                } else {
+                    window.addEventListener('load', signalPageReady, {once: true});
+                }
             };
             glue._websocket.onmessage = function (e) {
                 let message = JSON.parse(e.data);

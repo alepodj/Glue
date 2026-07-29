@@ -60,7 +60,8 @@ Optional extras:
 ```shell
 pip install "glue-ui[jinja2]"   # Jinja2 templates
 pip install "glue-ui[build]"    # PyInstaller for packaging
-# From a clone: pip install ".[jinja2]" / pip install ".[build]"
+pip install "glue-ui[splash]"   # Transparent PNG/APNG/GIF startup splash
+# From a clone: pip install ".[jinja2]" / ".[build]" / ".[splash]"
 ```
 
 ---
@@ -265,6 +266,8 @@ Pass keyword arguments to `glue.start()`:
 | `default_path` | `'index.html'` | Glue | all | Page served for the root URL `/` (homepage) |
 | `app` | new Bottle | Glue | all | Optional custom [Bottle](https://bottlepy.org/) app (e.g. add auth/session middleware). Omit to let Glue create one |
 | `shutdown_delay` | `1.0` | Glue | all | Seconds to wait after the last window closes before the Python process exits |
+| `splash` | `False` | Glue | webview / chrome / edge / custom | `True` discovers a PNG/APNG/GIF named `splash` in the UI or project root; a path selects an explicit image. Requires `glue-ui[splash]` |
+| `splash_min_duration` | `1.0` | Glue | webview / chrome / edge / custom | Minimum visible seconds; readiness and this duration must both complete before fade-out (`0` disables the minimum) |
 | `geometry` | `{}` | Glue | webview / chrome / edge | Per-page size/position when opening multiple files. Keys = page paths; values = `{'size': (w, h), 'position': (x, y)}` (either key optional). Overrides global `size` / `position` for that page |
 | `app_mode` | `True` | Glue | chrome/edge | Open Chromium in `--app` (desktop-like, less browser chrome) |
 | `cmdline_args` | `['--disable-http-cache']` | Glue | chrome/edge/custom | **Chrome/Edge:** extra flags appended to the browser command. **`custom`:** the full `Popen` argv (executable + args) |
@@ -297,6 +300,32 @@ Pass keyword arguments to `glue.start()`:
 
 **Defaults**: 
 - What you get when you omit the argument (Glue’s opinionated window setup). Pass an explicit value to override; that also wins over the same key in `webview_options`. Glue sets `SHOW_DEFAULT_MENUS=False` so stock Edit menus stay off unless you build your own. Advanced window control: `glue.get_webview_windows()`.
+
+### Startup splash
+
+Install `glue-ui[splash]`, then place a PNG, APNG, or GIF named `splash` in your
+project root or UI folder:
+
+```python
+import multiprocessing
+import glue
+
+def main():
+    glue.init()
+    glue.start(splash=True, splash_min_duration=1.0)
+    # Or select a file: glue.start(splash='branding/launch.gif')
+
+if __name__ == '__main__':
+    multiprocessing.freeze_support()
+    main()
+```
+
+Glue renders the image in an independent, frameless GLFW window with transparent
+pixels. It fades after the initial page loads, connects, and paints, while
+honoring the minimum duration. The guarded entrypoint is required by Windows
+multiprocessing and works with frozen applications. Missing optional
+dependencies or unavailable compositor transparency disable only the splash;
+the main app continues starting.
 
 ---
 
@@ -391,6 +420,7 @@ See the [PyInstaller docs](https://pyinstaller.readthedocs.io/) for more.
 | [`08 - createreactapp`](examples/08%20-%20createreactapp) | React + TypeScript |
 | [`09 - disable_cache`](examples/09%20-%20disable_cache) | Cache control |
 | [`10 - custom_app_routes`](examples/10%20-%20custom_app_routes) | Custom Bottle routes |
+| [`11 - splash`](examples/11%20-%20splash) | Transparent GLFW startup splash |
 
 ---
 

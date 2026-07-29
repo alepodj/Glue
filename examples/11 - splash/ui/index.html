@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Splash proof complete</title>
+  <script src="/glue.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+      background: #07111d;
+      color: #eafcff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 25% 20%, rgb(20 133 201 / 28%), transparent 34rem),
+        radial-gradient(circle at 80% 70%, rgb(19 189 169 / 24%), transparent 32rem),
+        #07111d;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+    }
+
+    main {
+      max-width: 760px;
+      padding: 64px;
+      text-align: center;
+      opacity: 0;
+      animation: app-in 600ms ease-out 80ms forwards;
+    }
+
+    img {
+      width: 160px;
+      height: 160px;
+      filter: drop-shadow(0 20px 34px rgb(5 195 211 / 22%));
+    }
+
+    h1 {
+      margin: 20px 0 12px;
+      font-size: clamp(2rem, 5vw, 4.2rem);
+      letter-spacing: -.045em;
+    }
+
+    p {
+      margin: 0 auto;
+      max-width: 620px;
+      color: #a9cbd2;
+      font-size: 1.08rem;
+      line-height: 1.7;
+    }
+
+    code {
+      color: #63e3d4;
+    }
+
+    @keyframes app-in {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      main {
+        animation-duration: 1ms;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <img src="/splash-logo.png" width="160" height="160" alt="">
+    <h1>The app is ready.</h1>
+    <p>
+      Glue detected this page's first paint and automatically faded its
+      transparent GLFW splash after the one-second minimum display time.
+    </p>
+  </main>
+</body>
+</html>

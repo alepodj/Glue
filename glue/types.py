@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from os import PathLike
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -49,3 +50,5 @@ class OptionsDictT(TypedDict, total=False):
     title: str | None
     resizable: bool
     webview_options: dict[str, Any]
+    splash: bool | str | PathLike[str]
+    splash_min_duration: float

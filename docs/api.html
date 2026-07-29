@@ -102,6 +102,8 @@ def internal_name():
               <tr><td><code>default_path</code></td><td><code>'index.html'</code></td><td>Page for <code>/</code></td></tr>
               <tr><td><code>app</code></td><td>new Bottle</td><td>Custom Bottle / middleware</td></tr>
               <tr><td><code>shutdown_delay</code></td><td><code>1.0</code></td><td>Seconds after last window closes</td></tr>
+              <tr><td><code>splash</code></td><td><code>False</code></td><td>Discover or select a transparent PNG/APNG/GIF startup splash</td></tr>
+              <tr><td><code>splash_min_duration</code></td><td><code>1.0</code></td><td>Minimum visible seconds before fade-out</td></tr>
               <tr><td><code>geometry</code></td><td><code>{}</code></td><td>Per-page size/position</td></tr>
               <tr><td><code>app_mode</code></td><td><code>True</code></td><td>Chromium <code>--app</code></td></tr>
               <tr><td><code>cmdline_args</code></td><td>cache flags</td><td>Chrome/Edge extras or custom argv</td></tr>
@@ -235,6 +237,8 @@ glue.add(1, 2)(console.log);  // callback style</code></pre>
               <tr><td><code>default_path</code></td><td><code>'index.html'</code></td><td>Glue</td><td>all</td><td>Page served for the root URL <code>/</code> (homepage)</td></tr>
               <tr><td><code>app</code></td><td>new Bottle</td><td>Glue</td><td>all</td><td>Optional custom Bottle app (e.g. auth/session middleware). Omit to let Glue create one</td></tr>
               <tr><td><code>shutdown_delay</code></td><td><code>1.0</code></td><td>Glue</td><td>all</td><td>Seconds to wait after the last window closes before the Python process exits</td></tr>
+              <tr><td><code>splash</code></td><td><code>False</code></td><td>Glue</td><td>webview / chrome / edge / custom</td><td><code>True</code> discovers a PNG/APNG/GIF named <code>splash</code> in the UI or project root; a path selects an explicit image. Requires <code>glue-ui[splash]</code></td></tr>
+              <tr><td><code>splash_min_duration</code></td><td><code>1.0</code></td><td>Glue</td><td>webview / chrome / edge / custom</td><td>Minimum visible seconds; both page readiness and this duration must complete before fade-out</td></tr>
               <tr><td><code>geometry</code></td><td><code>{}</code></td><td>Glue</td><td>webview / chrome / edge</td><td>Per-page size/position when opening multiple files. Keys = page paths; values = <code>{'size': (w, h), 'position': (x, y)}</code> (either key optional)</td></tr>
               <tr><td><code>app_mode</code></td><td><code>True</code></td><td>Glue</td><td>chrome/edge</td><td>Open Chromium in <code>--app</code> (desktop-like, less browser chrome)</td></tr>
               <tr><td><code>cmdline_args</code></td><td><code>['--disable-http-cache']</code></td><td>Glue</td><td>chrome/edge/custom</td><td><strong>Chrome/Edge:</strong> extra flags. <strong>custom:</strong> full <code>Popen</code> argv</td></tr>

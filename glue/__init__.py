@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import atexit
 import json as jsn
 import traceback
 import warnings
@@ -29,8 +30,9 @@ import pyparsing as pp
 
 import glue.browsers as brw
 import glue.settings as _settings
+import glue.splash as _splash
 
-__version__ = '0.6.6'
+__version__ = '0.6.7'
 
 
 mimetypes.add_type('application/javascript', '.js')
@@ -56,6 +58,8 @@ _js_result_timeout: int = 10000
 
 # Attribute holding the start args from calls to glue.start()
 _start_args: OptionsDictT = {}
+_splash_session: _splash.SplashController | None = None
+_splash_pages: set[str] = set()
 
 
 def _merge_webview_options(base: dict[str, Any] | None, **first_class: Any) -> dict[str, Any]:
@@ -65,6 +69,25 @@ def _merge_webview_options(base: dict[str, Any] | None, **first_class: Any) -> d
         if value is not None:
             merged[key] = value
     return merged
+
+
+def _close_splash() -> None:
+    global _splash_session
+    session, _splash_session = _splash_session, None
+    if session is not None:
+        session.close()
+
+
+def _dismiss_splash(page: str | None = None) -> None:
+    session = _splash_session
+    if session is None:
+        return
+    normalized = (page or '').lstrip('/')
+    if page is None or not _splash_pages or normalized in _splash_pages:
+        session.dismiss()
+
+
+atexit.register(_close_splash)
 
 
 _DEFAULT_ALLOWED_EXTENSIONS: list[str] = ['.js', '.html', '.txt', '.htm', '.xhtml', '.vue']
@@ -264,6 +287,8 @@ def start(
     gui: str | None = None,
     menu: list[Any] | None = None,
     webview_options: dict[str, Any] | None = None,
+    splash: bool | str | os.PathLike[str] = False,
+    splash_min_duration: int | float = 1.0,
 ) -> None:
     """Start the Glue app.
 
@@ -386,7 +411,16 @@ def start(
         :func:`webview.create_window` / :func:`webview.start` kwargs (e.g.
         :code:`private_mode`, :code:`transparent`). Explicit first-class
         kwargs above win over the same key here. *Default:* :code:`None`.
+    :param splash: Show a transparent GLFW splash while Glue starts. Pass
+        :code:`True` to discover a PNG/APNG/GIF named ``splash`` in the UI
+        folder or project root, or pass an explicit image path. Requires the
+        optional ``glue-ui[splash]`` extra. *Default:* :code:`False`.
+    :param splash_min_duration: Minimum number of seconds the splash remains
+        visible, even when the page becomes ready sooner. Use :code:`0` to
+        disable the minimum. *Default:* :code:`1.0`.
     """
+    global _splash_pages, _splash_session
+    splash_min_duration = _splash.validate_min_duration(splash_min_duration)
     if cmdline_args is None:
         cmdline_args = list(_DEFAULT_CMDLINE_ARGS)
     if geometry is None:
@@ -448,6 +482,8 @@ def start(
             'default_path': default_path,
             'app': app,
             'shutdown_delay': shutdown_delay,
+            'splash': splash,
+            'splash_min_duration': splash_min_duration,
         }
     )
 
@@ -545,26 +581,42 @@ def start(
             return webview.should_try(_start_args)
         return False
 
+    _close_splash()
+    _splash_pages = {str(page).lstrip('/') for page in start_urls}
+    if splash is not False and mode is not None:
+        _splash_session = _splash.start_splash(
+            splash,
+            ui_root=root_path,
+            project_root=_get_real_path('.'),
+            min_duration=splash_min_duration,
+        )
+
     # Start the webserver first, then open the window once listening (avoids race).
     # PyWebView's GUI loop blocks the main thread, so the Bottle server must run
     # in a real OS thread in that case — not a greenlet on the same hub.
-    if _should_run_server_in_thread():
-        server_thread = threading.Thread(target=run_lambda, name='glue-bottle', daemon=True)
-        server_thread.start()
-        _wait_for_server(cooperative=False)
-        # GUI closed: exit so we do not hang joining a daemon server thread.
-        if brw.webview_session_completed():
-            sys.exit(0)
-        if _start_args['block']:
-            # PyWebView failed over to Chrome/Edge; wait until websockets exit.
-            server_thread.join()
-    else:
-        server_greenlet = spawn(run_lambda)
-        _wait_for_server(cooperative=True)
-        if brw.webview_session_completed():
-            sys.exit(0)
-        if _start_args['block']:
-            server_greenlet.join()
+    try:
+        if _should_run_server_in_thread():
+            server_thread = threading.Thread(target=run_lambda, name='glue-bottle', daemon=True)
+            server_thread.start()
+            _wait_for_server(cooperative=False)
+            # GUI closed: exit so we do not hang joining a daemon server thread.
+            if brw.webview_session_completed():
+                _close_splash()
+                sys.exit(0)
+            if _start_args['block']:
+                # PyWebView failed over to Chrome/Edge; wait until websockets exit.
+                server_thread.join()
+        else:
+            server_greenlet = spawn(run_lambda)
+            _wait_for_server(cooperative=True)
+            if brw.webview_session_completed():
+                _close_splash()
+                sys.exit(0)
+            if _start_args['block']:
+                server_greenlet.join()
+    except BaseException:
+        _close_splash()
+        raise
 
 
 def get_webview_windows() -> list[Any]:
@@ -828,7 +880,10 @@ def _websocket(ws: WebSocketT) -> None:
         msg = ws.receive()
         if msg is not None:
             message = jsn.loads(msg)
-            spawn(_process_message, message, ws)
+            if message.get('event') == 'page-ready':
+                _dismiss_splash(page)
+            else:
+                spawn(_process_message, message, ws)
         else:
             _websockets.remove((page, ws))
             break
@@ -1018,6 +1073,7 @@ def _expose(name: str, function: Callable[..., Any]) -> None:
 
 def _detect_shutdown() -> None:
     if len(_websockets) == 0:
+        _close_splash()
         sys.exit()
 
 

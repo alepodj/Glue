@@ -1,5 +1,11 @@
 # Change log
 
+### 0.6.7
+
+* Optional cross-platform transparent startup splash via ``glue.start(splash=True)`` or an explicit PNG/APNG/GIF path. GLFW renders in an isolated process, animations are supported, and the splash fades after the first page paints plus a configurable one-second minimum.
+* Add the ``glue-ui[splash]`` extra (GLFW + Pillow); applications not using splashes gain no dependencies or startup cost.
+* Add example ``11 - splash`` and automatic page-ready signaling over the Glue bridge.
+
 ### 0.6.6
 
 * Chrome/Edge favicon: when ``ui/favicon.ico`` exists, inject a cache-busted ``<link rel="icon">`` into served HTML ``<head>`` (before the browser parses the page). Skip if the page already declares an icon. ``glue.js`` still applies a favicon link as a backup.

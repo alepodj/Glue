@@ -318,6 +318,27 @@ glue.start('index.html', app=app)</code></pre>
             <a href="https://github.com/alepodj/Glue/tree/main/examples/10%20-%20custom_app_routes" target="_blank" rel="noopener">View on GitHub →</a>
           </div>
         </article>
+
+        <article class="card" id="ex-11" data-reveal>
+          <div class="card__body">
+            <span class="tag">11 - splash</span>
+            <h3>Transparent startup splash</h3>
+            <p>Repo: <code>examples/11 - splash</code></p>
+            <pre><code>import multiprocessing
+import glue
+
+def main():
+    glue.init()
+    glue.start(splash=True)
+
+if __name__ == '__main__':
+    multiprocessing.freeze_support()
+    main()</code></pre>
+          </div>
+          <div class="card__foot">
+            <a href="https://github.com/alepodj/Glue/tree/main/examples/11%20-%20splash" target="_blank" rel="noopener">View on GitHub →</a>
+          </div>
+        </article>
       </div>
       <p class="docs-footer">
         Glue is a fork of <a href="https://github.com/python-eel/Eel" target="_blank" rel="noopener">Eel</a>.

@@ -1,7 +1,7 @@
 # Glue
 <sub>Glue is a fork of [Eel](https://github.com/python-eel/Eel) by Chris Knott and contributors.</sub>
 
-[Glue Documentation](https://alepodj.github.io/Glue/)
+### [Glue Documentation](https://alepodj.github.io/Glue/)
 
 A little and opinionated Python library for making **desktop apps with HTML, CSS, and JavaScript** — plus full access to Python. It hosts a local window, then lets Python and JavaScript call each other. No new UI framework.
 

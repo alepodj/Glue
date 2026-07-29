@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Developers · Glue</title>
+  <meta name="description" content="Glue (glue-ui) — desktop apps with HTML, CSS, JS and Python." />
+  <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;1,400&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/presentation.css" />
+  <link rel="stylesheet" href="css/site.css" />
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+</head>
+<body class="layout-docs" data-page="developers">
+  <div class="atmosphere" aria-hidden="true">
+    <div class="orb orb-a"></div>
+    <div class="orb orb-b"></div>
+    <div class="grain"></div>
+  </div>
+  <div id="site-nav" class="site-nav"></div>
+  <div class="docs-shell">
+    <aside class="docs-side" aria-label="On this page">
+      <a href="#setup">Environment</a>
+      <a href="#tests">Tests</a>
+      <a href="#commands">Day-to-day</a>
+      <a href="#tox">Tox</a>
+      <a href="#ci">CI / release</a>
+    </aside>
+    <main class="docs-main">
+
+      <header class="docs-hero" data-reveal>
+        <p class="eyebrow">Developers</p>
+        <h1>Contribute to Glue</h1>
+        <p class="lede">From <code>README-developers.md</code> — local setup, pytest layout, Tox, and how releases ship.</p>
+      </header>
+
+      <section class="docs-section" id="setup" data-reveal>
+        <h2>Environment</h2>
+        <pre><code>git clone git@github.com:alepodj/Glue.git
+cd Glue
+python -m venv .venv
+# Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+pip install -r requirements-test.txt
+pip install -r requirements-meta.txt   # if you use tox</code></pre>
+        <p>Python <strong>3.10+</strong>. Or editable: <code>pip install -e ".[jinja2,build]"</code>.</p>
+        <div class="docs-table-wrap">
+          <table class="docs-table">
+            <thead><tr><th>File</th><th>When</th></tr></thead>
+            <tbody>
+              <tr><td><code>requirements.txt</code></td><td>Runtime (bottle, gevent, pywebview, …)</td></tr>
+              <tr><td><code>requirements-test.txt</code></td><td>pytest, Selenium, Ruff, mypy</td></tr>
+              <tr><td><code>requirements-meta.txt</code></td><td>Host tools (tox) before Tox runs</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="docs-section" id="tests" data-reveal>
+        <h2>How testing is organized</h2>
+        <pre><code>tests/
+  conftest.py
+  helpers/
+  data/init_test/
+  unit/           # fast, mocked
+  integration/    # Selenium + examples (Chrome)</code></pre>
+        <p>Only <code>test_*.py</code> files are collected. Integration covers selected examples; CRA and some demos are skipped on purpose.</p>
+      </section>
+
+      <section class="docs-section" id="commands" data-reveal>
+        <h2>Day-to-day commands</h2>
+        <pre><code>python -m pytest tests/unit -q
+python -m pytest tests -q --timeout=240
+ruff check glue tests
+ruff format glue tests
+mypy --strict glue</code></pre>
+      </section>
+
+      <section class="docs-section" id="tox" data-reveal>
+        <h2>Tox</h2>
+        <p>Same suite in clean envs across Python versions:</p>
+        <pre><code>tox -e lint
+tox -e typecheck
+tox -e py312
+tox</code></pre>
+      </section>
+
+      <section class="docs-section" id="ci" data-reveal>
+        <h2>CI and release</h2>
+        <h3>What runs automatically</h3>
+        <ul>
+          <li><strong>Push / PR to <code>main</code></strong> → <em>Test Glue</em> (Ruff lint + format, mypy, pytest on Python 3.10–3.14 × Ubuntu / Windows / macOS) and <em>CodeQL</em>.</li>
+          <li><strong>Push a version tag</strong> <code>vX.Y.Z</code> → <em>Publish</em>: build sdist/wheel, upload <code>glue-ui</code> to PyPI (Trusted Publishing), create a GitHub Release with artifacts.</li>
+        </ul>
+        <p>Normal commits never publish to PyPI. Only a matching version tag does.</p>
+        <h3>Cut a release</h3>
+        <ol>
+          <li>Bump <code>__version__</code> in <code>glue/__init__.py</code> and <code>version=</code> in <code>setup.py</code> to the same value (e.g. <code>0.6.7</code>).</li>
+          <li>Add a <code>CHANGELOG.md</code> section for that version.</li>
+          <li>Commit and push to <code>main</code> (CI should go green).</li>
+          <li>Tag and push the tag (must match the version string):</li>
+        </ol>
+        <pre><code>git tag v0.6.7
+git push origin v0.6.7</code></pre>
+        <p>If you already know you’re on latest <code>main</code>, you don’t need <code>checkout</code> / <code>pull</code> first.</p>
+        <h3>Verify</h3>
+        <ul>
+          <li>GitHub → <strong>Actions</strong> → <strong>Publish</strong> is green.</li>
+          <li><a href="https://pypi.org/project/glue-ui/" target="_blank" rel="noopener">pypi.org/project/glue-ui</a> shows the new version.</li>
+          <li>Repo → <strong>Releases</strong> lists the tag.</li>
+        </ul>
+        <p>One-time setup (PyPI Trusted Publisher + GitHub Environment <code>pypi</code>): see <code>README-developers.md</code> → Releasing to PyPI. Docs site: Settings → Pages → branch <code>main</code> / folder <code>/docs</code>.</p>
+      </section>
+
+      <p class="docs-footer">
+        Glue is a fork of <a href="https://github.com/python-eel/Eel" target="_blank" rel="noopener">Eel</a>.
+        Install with <code class="inline-code">pip install glue-ui</code> ·
+        <a href="https://github.com/alepodj/Glue" target="_blank" rel="noopener">GitHub</a>
+      </p>
+    </main>
+  </div>
+  <script src="js/site.js"></script>
+</body>
+</html>

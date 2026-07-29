@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Projects · Glue</title>
+  <meta name="description" content="Glue (glue-ui) — desktop apps with HTML, CSS, JS and Python." />
+  <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;1,400&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/presentation.css" />
+  <link rel="stylesheet" href="css/site.css" />
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+</head>
+<body class="layout-docs" data-page="projects">
+  <div class="atmosphere" aria-hidden="true">
+    <div class="orb orb-a"></div>
+    <div class="orb orb-b"></div>
+    <div class="grain"></div>
+  </div>
+  <div id="site-nav" class="site-nav"></div>
+  <div class="docs-shell">
+    <aside class="docs-side" aria-label="On this page">
+      <a href="#built-with">Built with Glue</a>
+      <a href="#submit">Submit yours</a>
+    </aside>
+    <main class="docs-main">
+
+      <header class="docs-hero" data-reveal>
+        <p class="eyebrow">Projects</p>
+        <h1>Built with Glue</h1>
+        <p class="lede">Apps shipping on glue-ui. This gallery will grow — Faro is first in line.</p>
+      </header>
+
+      <section class="docs-section" id="built-with" data-reveal>
+        <h2>Spotlight</h2>
+        <div class="card-grid">
+          <article class="card">
+            <span class="tag">Coming soon</span>
+            <h3>Faro <span class="coming-soon">soon</span></h3>
+            <p>A Glue-powered desktop app. Details and links will land here when published.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="docs-section" id="submit" data-reveal>
+        <h2>Add your project</h2>
+        <p>Building something with Glue? Open an issue or PR on
+        <a href="https://github.com/alepodj/Glue" target="_blank" rel="noopener">GitHub</a>
+        and we will feature it here.</p>
+      </section>
+
+      <p class="docs-footer">
+        Glue is a fork of <a href="https://github.com/python-eel/Eel" target="_blank" rel="noopener">Eel</a>.
+        Install with <code class="inline-code">pip install glue-ui</code> ·
+        <a href="https://github.com/alepodj/Glue" target="_blank" rel="noopener">GitHub</a>
+      </p>
+    </main>
+  </div>
+  <script src="js/site.js"></script>
+</body>
+</html>

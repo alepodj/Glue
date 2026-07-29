@@ -4,6 +4,7 @@
 
 * Chrome/Edge favicon: when ``ui/favicon.ico`` exists, inject a cache-busted ``<link rel="icon">`` into served HTML ``<head>`` (before the browser parses the page). Skip if the page already declares an icon. ``glue.js`` still applies a favicon link as a backup.
 * PyPI distribution name is ``glue-ui`` (``import glue`` unchanged). Publishing: push a ``v*`` tag → GitHub Release + PyPI upload via Trusted Publishing.
+* Docs site under ``docs/`` for GitHub Pages (``alepodj.github.io/Glue``): presentation-style home plus Documentation, API, Examples, Projects, Developers.
 
 ### 0.6.5
 

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>API · Glue</title>
+  <meta name="description" content="Glue (glue-ui) — desktop apps with HTML, CSS, JS and Python." />
+  <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;1,400&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/presentation.css" />
+  <link rel="stylesheet" href="css/site.css" />
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+</head>
+<body class="layout-docs" data-page="api">
+  <div class="atmosphere" aria-hidden="true">
+    <div class="orb orb-a"></div>
+    <div class="orb orb-b"></div>
+    <div class="grain"></div>
+  </div>
+  <div id="site-nav" class="site-nav"></div>
+  <div class="docs-shell">
+    <aside class="docs-side" aria-label="On this page">
+      <a href="#expose">expose</a>
+      <a href="#init">init</a>
+      <a href="#start">start</a>
+      <a href="#settings-api">settings</a>
+      <a href="#sleep-spawn">sleep / spawn</a>
+      <a href="#show">show</a>
+      <a href="#webview-windows">get_webview_windows</a>
+      <a href="#routes">register_glue_routes</a>
+      <a href="#js-api">JavaScript API</a>
+    </aside>
+    <main class="docs-main">
+
+      <header class="docs-hero" data-reveal>
+        <p class="eyebrow">API</p>
+        <h1>Public surface</h1>
+        <p class="lede">Stable entry points for Glue apps. Import as <code>import glue</code> after <code>pip install glue-ui</code>.</p>
+      </header>
+
+      <section class="docs-section" id="expose" data-reveal>
+        <h2>glue.expose</h2>
+        <p>Decorator (or function) to expose Python callables to JavaScript.</p>
+        <pre><code>@glue.expose
+def add(a, b):
+    return a + b
+
+@glue.expose('renamed')
+def internal_name():
+    return 1</code></pre>
+        <p>From JS: <code>await glue.add(1, 2)()</code> — note the extra <code>()</code> for the callback / await pattern.</p>
+      </section>
+
+      <section class="docs-section" id="init" data-reveal>
+        <h2>glue.init</h2>
+        <pre><code>glue.init(
+    path='ui',
+    allowed_extensions=['.js', '.html', '.txt', '.htm', '.xhtml', '.vue'],
+    js_result_timeout=10000,
+    app_name=None,
+)</code></pre>
+        <ul>
+          <li><code>path</code> — UI root folder (default <code>ui</code> / <code>web</code> discovery).</li>
+          <li><code>allowed_extensions</code> — files scanned for <code>glue.expose(...)</code> so Python can call those JS names.</li>
+          <li><code>js_result_timeout</code> — ms to wait for JS return values.</li>
+          <li><code>app_name</code> — unlocks default settings path <code>~/.{app_name}/{app_name}.json</code>.</li>
+        </ul>
+      </section>
+
+      <section class="docs-section" id="start" data-reveal>
+        <h2>glue.start</h2>
+        <p>Positional args = start pages (before kwargs). Compact view below; expand for the full README table (Option / Default / Source / Hosts / Notes).</p>
+        <div class="table-toolbar">
+          <p>All <code>glue.start()</code> options</p>
+          <button type="button" class="icon-btn" id="start-options-expand" aria-expanded="false" aria-controls="start-options-modal" title="Expand full options table">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H3v6M15 3h6v6M9 21H3v-6M15 21h6v-6"/><path d="M3 9l6-6M21 9l-6-6M3 15l6 6M21 15l-6 6"/></svg>
+            Expand
+          </button>
+        </div>
+        <div class="docs-table-wrap">
+          <table class="docs-table compact">
+            <thead>
+              <tr>
+                <th>Option</th>
+                <th>Default</th>
+                <th class="notes-col">Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><code>*(pages)</code></td><td><code>'index.html'</code></td><td>HTML file(s) to open first (positional)</td></tr>
+              <tr><td><code>mode</code></td><td><code>'auto'</code></td><td>webview → chrome → edge — see Hosts</td></tr>
+              <tr><td><code>host</code></td><td><code>'localhost'</code></td><td>HTTP bind hostname</td></tr>
+              <tr><td><code>port</code></td><td><code>8000</code></td><td><code>0</code> = pick a free port</td></tr>
+              <tr><td><code>block</code></td><td><code>True</code></td><td><code>False</code> returns; skips PyWebView in auto</td></tr>
+              <tr><td><code>jinja_templates</code></td><td><code>None</code></td><td>Jinja2 subfolder under UI root</td></tr>
+              <tr><td><code>close_callback</code></td><td><code>None</code></td><td>On window/WebSocket close</td></tr>
+              <tr><td><code>all_interfaces</code></td><td><code>False</code></td><td>Trusted networks only</td></tr>
+              <tr><td><code>disable_cache</code></td><td><code>True</code></td><td><code>Cache-Control: no-store</code></td></tr>
+              <tr><td><code>default_path</code></td><td><code>'index.html'</code></td><td>Page for <code>/</code></td></tr>
+              <tr><td><code>app</code></td><td>new Bottle</td><td>Custom Bottle / middleware</td></tr>
+              <tr><td><code>shutdown_delay</code></td><td><code>1.0</code></td><td>Seconds after last window closes</td></tr>
+              <tr><td><code>geometry</code></td><td><code>{}</code></td><td>Per-page size/position</td></tr>
+              <tr><td><code>app_mode</code></td><td><code>True</code></td><td>Chromium <code>--app</code></td></tr>
+              <tr><td><code>cmdline_args</code></td><td>cache flags</td><td>Chrome/Edge extras or custom argv</td></tr>
+              <tr><td><code>frameless</code></td><td><code>True</code></td><td>PyWebView; Glue title bar</td></tr>
+              <tr><td><code>easy_drag</code></td><td><code>False</code></td><td>Drag frameless from empty area</td></tr>
+              <tr><td><code>shadow</code></td><td>Win True</td><td>Window drop shadow</td></tr>
+              <tr><td><code>debug</code></td><td><code>False</code></td><td>DevTools / shortcuts</td></tr>
+              <tr><td><code>confirm_close</code></td><td><code>False</code></td><td>Confirm before quit</td></tr>
+              <tr><td><code>fullscreen</code></td><td><code>False</code></td><td>Start fullscreen</td></tr>
+              <tr><td><code>minimized</code></td><td><code>False</code></td><td>Start minimized</td></tr>
+              <tr><td><code>maximized</code></td><td><code>False</code></td><td>Start maximized</td></tr>
+              <tr><td><code>on_top</code></td><td><code>False</code></td><td>Always on top</td></tr>
+              <tr><td><code>min_size</code></td><td><code>(200, 100)</code></td><td>Minimum resize</td></tr>
+              <tr><td><code>icon</code></td><td><code>ui/favicon.ico</code></td><td>Taskbar / caption favicon inject</td></tr>
+              <tr><td><code>gui</code></td><td>auto</td><td>PyWebView backend</td></tr>
+              <tr><td><code>menu</code></td><td><code>[]</code></td><td>Native menu bar</td></tr>
+              <tr><td><code>webview_options</code></td><td><code>{}</code></td><td>Escape hatch; kwargs win</td></tr>
+              <tr><td><code>size</code></td><td>1280×720</td><td><code>(width, height)</code></td></tr>
+              <tr><td><code>position</code></td><td><code>None</code></td><td><code>(left, top)</code></td></tr>
+              <tr><td><code>title</code></td><td><code>'Glue'</code></td><td>Window / in-page title</td></tr>
+              <tr><td><code>resizable</code></td><td><code>True</code></td><td>User resize; Win edge grips</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Source: Glue / PyWebView / both · Hosts: all / webview / chrome/edge — see expanded table.</p>
+      </section>
+
+      <section class="docs-section" id="settings-api" data-reveal>
+        <h2>glue.settings / save_settings / settings_path</h2>
+        <pre><code>data = glue.settings()                 # or settings('/path.json')
+glue.save_settings(data)               # creates dirs on first write
+path = glue.settings_path()            # requires app_name</code></pre>
+      </section>
+
+      <section class="docs-section" id="sleep-spawn" data-reveal>
+        <h2>glue.sleep / glue.spawn</h2>
+        <pre><code>glue.sleep(1.0)
+greenlet = glue.spawn(my_fn, arg1, kw=2)</code></pre>
+        <p>Gevent-friendly; prefer these over blocking stdlib sleep in Glue apps.</p>
+      </section>
+
+      <section class="docs-section" id="show" data-reveal>
+        <h2>glue.show</h2>
+        <p>Open additional pages after <code>start</code> (same hosts / geometry rules).</p>
+        <pre><code>glue.show('other.html')</code></pre>
+      </section>
+
+      <section class="docs-section" id="webview-windows" data-reveal>
+        <h2>glue.get_webview_windows</h2>
+        <p>Returns the list of PyWebView window objects for advanced control when the host is PyWebView.</p>
+        <pre><code>windows = glue.get_webview_windows()</code></pre>
+      </section>
+
+      <section class="docs-section" id="routes" data-reveal>
+        <h2>glue.register_glue_routes</h2>
+        <p>Attach Glue routes to a custom Bottle app before <code>glue.start(app=...)</code>. Usually automatic.</p>
+        <pre><code>import bottle
+import glue
+
+app = bottle.Bottle()
+glue.register_glue_routes(app)
+glue.start(app=app)</code></pre>
+      </section>
+
+      <section class="docs-section" id="js-api" data-reveal>
+        <h2>JavaScript API</h2>
+        <p>Include the bridge on every page before your app scripts:</p>
+        <pre><code>&lt;script type="text/javascript" src="/glue.js"&gt;&lt;/script&gt;</code></pre>
+        <div class="js-api-grid">
+          <article class="js-api-card">
+            <h3>Expose to Python</h3>
+            <p><code>glue.expose(fn)</code> or <code>glue.expose(fn, "name")</code> registers a JS function so Python can call <code>glue.name()()</code>.</p>
+            <pre><code>glue.expose(say_hello_js);
+function say_hello_js(x) {
+  console.log(x);
+}</code></pre>
+          </article>
+          <article class="js-api-card">
+            <h3>Call Python</h3>
+            <p>Exposed Python functions appear on <code>glue</code>. Call with args, then an extra <code>()</code> to run (returns a Promise — use <code>await</code>).</p>
+            <pre><code>let sum = await glue.add(1, 2)();
+glue.add(1, 2)(console.log);  // callback style</code></pre>
+          </article>
+          <article class="js-api-card">
+            <h3>Window identity</h3>
+            <p>When you pass <code>title=</code> to <code>glue.start</code>, <code>/glue.js</code> applies it to <code>document.title</code> so Chrome/Edge captions match.</p>
+          </article>
+          <article class="js-api-card">
+            <h3>Geometry helpers</h3>
+            <p>On Chrome/Edge, <code>/glue.js</code> can apply <code>size</code> / <code>position</code> / per-page <code>geometry</code> via <code>resizeTo</code> / <code>moveTo</code> after load.</p>
+          </article>
+        </div>
+      </section>
+
+      <p class="docs-footer">
+        Glue is a fork of <a href="https://github.com/python-eel/Eel" target="_blank" rel="noopener">Eel</a>.
+        Install with <code class="inline-code">pip install glue-ui</code> ·
+        <a href="https://github.com/alepodj/Glue" target="_blank" rel="noopener">GitHub</a>
+      </p>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="start-options-modal" hidden>
+    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="start-options-title">
+      <div class="modal-panel__head">
+        <h3 id="start-options-title">glue.start() — full options</h3>
+        <button type="button" class="icon-btn" data-close-modal>Close</button>
+      </div>
+      <div class="modal-table-scroll">
+        <div class="docs-table-wrap">
+          <table class="docs-table">
+            <thead>
+              <tr>
+                <th>Option</th>
+                <th>Default</th>
+                <th>Source</th>
+                <th>Hosts</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><code>*(pages)</code></td><td><code>'index.html'</code></td><td>Glue</td><td>all</td><td>Which HTML file(s) to open first (positional args), they must come before keyword args</td></tr>
+              <tr><td><code>mode</code></td><td><code>'auto'</code></td><td>Glue</td><td>all</td><td>How to show the UI — see Hosts</td></tr>
+              <tr><td><code>host</code></td><td><code>'localhost'</code></td><td>Glue</td><td>all</td><td>Hostname the local HTTP server binds to</td></tr>
+              <tr><td><code>port</code></td><td><code>8000</code></td><td>Glue</td><td>all</td><td>Server port (<code>0</code> = pick a free port)</td></tr>
+              <tr><td><code>block</code></td><td><code>True</code></td><td>Glue</td><td>all</td><td>Keep <code>start()</code> running until the app exits. <code>False</code> returns so you can run your own loop (skips PyWebView in <code>auto</code>; PyWebView needs <code>True</code>)</td></tr>
+              <tr><td><code>jinja_templates</code></td><td><code>None</code></td><td>Glue</td><td>all</td><td>Subfolder of the UI root for Jinja2 templates</td></tr>
+              <tr><td><code>close_callback</code></td><td><code>None</code></td><td>Glue</td><td>all</td><td>Called when a window/WebSocket closes (cleanup / last-window logic)</td></tr>
+              <tr><td><code>all_interfaces</code></td><td><code>False</code></td><td>Glue</td><td>all</td><td>Listen on <code>0.0.0.0</code> and allow remote WebSocket clients (trusted networks only)</td></tr>
+              <tr><td><code>disable_cache</code></td><td><code>True</code></td><td>Glue</td><td>all</td><td>Send <code>no-store</code> so the browser doesn’t cache UI assets during development</td></tr>
+              <tr><td><code>default_path</code></td><td><code>'index.html'</code></td><td>Glue</td><td>all</td><td>Page served for the root URL <code>/</code> (homepage)</td></tr>
+              <tr><td><code>app</code></td><td>new Bottle</td><td>Glue</td><td>all</td><td>Optional custom Bottle app (e.g. auth/session middleware). Omit to let Glue create one</td></tr>
+              <tr><td><code>shutdown_delay</code></td><td><code>1.0</code></td><td>Glue</td><td>all</td><td>Seconds to wait after the last window closes before the Python process exits</td></tr>
+              <tr><td><code>geometry</code></td><td><code>{}</code></td><td>Glue</td><td>webview / chrome / edge</td><td>Per-page size/position when opening multiple files. Keys = page paths; values = <code>{'size': (w, h), 'position': (x, y)}</code> (either key optional)</td></tr>
+              <tr><td><code>app_mode</code></td><td><code>True</code></td><td>Glue</td><td>chrome/edge</td><td>Open Chromium in <code>--app</code> (desktop-like, less browser chrome)</td></tr>
+              <tr><td><code>cmdline_args</code></td><td><code>['--disable-http-cache']</code></td><td>Glue</td><td>chrome/edge/custom</td><td><strong>Chrome/Edge:</strong> extra flags. <strong>custom:</strong> full <code>Popen</code> argv</td></tr>
+              <tr><td><code>frameless</code></td><td><code>True</code></td><td>PyWebView</td><td>webview</td><td>Hide the OS title bar; Glue draws its in-page title bar (<code>False</code> = stock OS chrome)</td></tr>
+              <tr><td><code>easy_drag</code></td><td><code>False</code></td><td>PyWebView</td><td>webview</td><td>Allow dragging a frameless window from any empty area of the page</td></tr>
+              <tr><td><code>shadow</code></td><td><code>True</code> on Windows</td><td>PyWebView</td><td>webview</td><td>Draw a drop shadow around the window</td></tr>
+              <tr><td><code>debug</code></td><td><code>False</code></td><td>PyWebView</td><td>webview</td><td>Enable DevTools / shortcuts (F12, F5, context menu)</td></tr>
+              <tr><td><code>confirm_close</code></td><td><code>False</code></td><td>PyWebView</td><td>webview</td><td>Ask before quitting</td></tr>
+              <tr><td><code>fullscreen</code></td><td><code>False</code></td><td>PyWebView</td><td>webview</td><td>Start covering the whole screen</td></tr>
+              <tr><td><code>minimized</code></td><td><code>False</code></td><td>PyWebView</td><td>webview</td><td>Start in the taskbar/dock</td></tr>
+              <tr><td><code>maximized</code></td><td><code>False</code></td><td>PyWebView</td><td>webview</td><td>Start maximized to the work area</td></tr>
+              <tr><td><code>on_top</code></td><td><code>False</code></td><td>PyWebView</td><td>webview</td><td>Keep the window above other windows</td></tr>
+              <tr><td><code>min_size</code></td><td><code>(200, 100)</code></td><td>PyWebView</td><td>webview</td><td>Smallest <code>(width, height)</code> the user can resize to</td></tr>
+              <tr><td><code>icon</code></td><td><code>ui/favicon.ico</code> if present</td><td>PyWebView</td><td>webview / chrome / edge</td><td><strong>PyWebView:</strong> taskbar/dock. <strong>Chrome/Edge:</strong> caption from page favicon — Glue injects <code>&lt;link rel="icon"&gt;</code> when the file exists</td></tr>
+              <tr><td><code>gui</code></td><td>auto</td><td>PyWebView</td><td>webview</td><td>Force backend (<code>'edgechromium'</code>, <code>'qt'</code>, <code>'gtk'</code>, …)</td></tr>
+              <tr><td><code>menu</code></td><td><code>[]</code></td><td>PyWebView</td><td>webview</td><td>Native menu bar; empty = no menus</td></tr>
+              <tr><td><code>webview_options</code></td><td><code>{}</code></td><td>PyWebView</td><td>webview</td><td>Escape hatch for other PyWebView kwargs; first-class kwargs win on conflict</td></tr>
+              <tr><td><code>size</code></td><td><code>None</code> → <strong>1280×720</strong></td><td>both</td><td>webview / chrome / edge</td><td>Initial content size as <code>(width, height)</code> pixels</td></tr>
+              <tr><td><code>position</code></td><td><code>None</code></td><td>both</td><td>webview / chrome / edge</td><td>Initial screen position as <code>(left, top)</code>; omit for host placement</td></tr>
+              <tr><td><code>title</code></td><td><code>'Glue'</code></td><td>both</td><td>webview</td><td>Text in the native/in-page title bar (Chrome/Edge use the page <code>&lt;title&gt;</code> / injected title)</td></tr>
+              <tr><td><code>resizable</code></td><td><code>True</code></td><td>both</td><td>webview</td><td>Allow resize; on Windows frameless, Glue adds edge grips</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p class="modal-panel__foot">
+        <strong>Source:</strong> Glue = Glue API · PyWebView = exposed PyWebView option · both = first-class on start and mapped for PyWebView.
+        <strong>Hosts:</strong> which window host honors the option.
+      </p>
+    </div>
+  </div>
+  <script src="js/site.js"></script>
+</body>
+</html>

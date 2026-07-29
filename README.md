@@ -35,6 +35,8 @@ pip install glue-ui
 
 That installs the **PyPI** project `glue-ui`. You still `import glue` in Python (the import name is unchanged).
 
+**Docs site:** [alepodj.github.io/Glue](https://alepodj.github.io/Glue/) (GitHub Pages from the `docs/` folder).
+
 From a clone of this repo:
 
 ```shell

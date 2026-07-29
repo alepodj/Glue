@@ -203,6 +203,12 @@ Preferred: GitHub proves identity via OIDC — no long-lived `pypi_token` secret
 
 Ensure `main` includes `.github/workflows/publish.yml` **before** you push the first version tag (so the tag’s workflow file exists).
 
+### GitHub Pages (docs site)
+
+The marketing + documentation site lives in [`docs/`](../docs/) and publishes to **https://alepodj.github.io/Glue/**.
+
+One-time: repo **Settings → Pages →** Deploy from branch **`main`** / folder **`/docs`**.
+
 ### Each release (after setup)
 
 1. Update `__version__` in `glue/__init__.py` and `version=` in `setup.py` to the same value (e.g. `0.6.6`)

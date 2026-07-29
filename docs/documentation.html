@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Documentation · Glue</title>
+  <meta name="description" content="Glue (glue-ui) — desktop apps with HTML, CSS, JS and Python." />
+  <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;1,400&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/presentation.css" />
+  <link rel="stylesheet" href="css/site.css" />
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+</head>
+<body class="layout-docs" data-page="documentation">
+  <div class="atmosphere" aria-hidden="true">
+    <div class="orb orb-a"></div>
+    <div class="orb orb-b"></div>
+    <div class="grain"></div>
+  </div>
+  <div id="site-nav" class="site-nav"></div>
+  <div class="docs-shell">
+    <aside class="docs-side" aria-label="On this page">
+      <a href="#install">Install</a>
+      <a href="#quick-start">Quick start</a>
+      <a href="#call-both-ways">Call both ways</a>
+      <a href="#hello-world">Hello, World!</a>
+      <a href="#return-values">Return values</a>
+      <a href="#settings">Settings</a>
+      <a href="#hosts">Hosts</a>
+      <a href="#async">Async Python</a>
+      <a href="#package">PyInstaller</a>
+      <a href="#layout">Project layout</a>
+      <a href="#security">Security</a>
+    </aside>
+    <main class="docs-main">
+
+      <header class="docs-hero" data-reveal>
+        <p class="eyebrow">Documentation</p>
+        <h1>Build desktop apps with the web stack you already know</h1>
+        <p class="lede">Glue hosts a local window, then lets Python and JavaScript call each other. No Electron ceremony. No new UI framework.</p>
+        <div class="pill-row">
+          <a class="pill" href="https://pypi.org/project/glue-ui/">pip install glue-ui</a>
+          <a class="pill" href="api.html">API reference</a>
+          <a class="pill" href="examples.html">Examples</a>
+        </div>
+      </header>
+
+      <section class="docs-section" id="install" data-reveal>
+        <h2>Install</h2>
+        <p>PyPI project name is <code>glue-ui</code>. You still <code>import glue</code> in Python.</p>
+        <pre><code>pip install glue-ui</code></pre>
+        <p>Optional extras:</p>
+        <pre><code>pip install "glue-ui[jinja2]"   # Jinja2 templates
+pip install "glue-ui[build]"    # PyInstaller for packaging</code></pre>
+        <p>From a clone: <code>pip install .</code> or editable <code>pip install -e .</code></p>
+        <pre><code>pip install "git+https://github.com/alepodj/Glue.git@main"</code></pre>
+      </section>
+
+      <section class="docs-section" id="quick-start" data-reveal>
+        <h2>Quick start</h2>
+        <p>Put your frontend in a folder named <code>ui/</code> with <code>index.html</code> (the defaults), then:</p>
+        <pre><code>import glue
+
+glue.init()    # Override ui/ with any path: glue.init('frontend')
+glue.start()   # Override index.html: glue.start('main.html')</code></pre>
+        <p>By default Glue opens a <strong>PyWebView</strong> native window. If that isn’t available, it falls back to Chrome/Chromium in app mode (<code>--app</code>), then Edge on Windows only.</p>
+        <p>Include the bridge on every HTML page:</p>
+        <pre><code>&lt;script type="text/javascript" src="/glue.js"&gt;&lt;/script&gt;</code></pre>
+        <p>Backend layout is yours — one Python file or many folders. Glue does not require a fixed backend structure.</p>
+      </section>
+
+      <section class="docs-section" id="call-both-ways" data-reveal>
+        <h2>Call both ways</h2>
+        <h3>Python → available in JavaScript</h3>
+        <pre><code>@glue.expose
+def add(a, b):
+    return a + b</code></pre>
+        <pre><code>let sum = await glue.add(1, 2)();</code></pre>
+        <h3>JavaScript → available in Python</h3>
+        <pre><code>glue.expose(js_random);
+function js_random() {
+  return Math.random();
+}</code></pre>
+        <pre><code>n = glue.js_random()()          # wait for the value
+glue.js_random()(print)         # or use a callback</code></pre>
+        <p>Complex values travel as JSON over a WebSocket. If a bundler renames functions, expose with an explicit name: <code>glue.expose(fn, "my_name")</code>.</p>
+      </section>
+
+      <section class="docs-section" id="hello-world" data-reveal>
+        <h2>Hello, World!</h2>
+        <p>Full example lives in <code>examples/01 - hello_world</code> on GitHub.</p>
+        <h3>ui/hello.html</h3>
+        <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;title&gt;Hello, World!&lt;/title&gt;
+    &lt;script type="text/javascript" src="/glue.js"&gt;&lt;/script&gt;
+    &lt;script&gt;
+      glue.expose(say_hello_js);
+      function say_hello_js(x) { console.log("Hello from " + x); }
+      say_hello_js("Javascript World!");
+      glue.say_hello_py("Javascript World!");
+    &lt;/script&gt;
+  &lt;/head&gt;
+  &lt;body&gt;Hello, World!&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+        <h3>hello.py</h3>
+        <pre><code>import glue
+
+glue.init()
+
+@glue.expose
+def say_hello_py(x):
+    print('Hello from %s' % x)
+
+say_hello_py('Python World!')
+glue.say_hello_js('Python World!')
+glue.start('hello.html')</code></pre>
+      </section>
+
+      <section class="docs-section" id="return-values" data-reveal>
+        <h2>Return values</h2>
+        <p><strong>Callback</strong></p>
+        <pre><code>glue.js_random()(lambda n: print('Got', n))</code></pre>
+        <p><strong>Synchronous wait</strong> (after <code>glue.start()</code>, or with <code>block=False</code>)</p>
+        <pre><code>n = glue.js_random()()</code></pre>
+        <p>In JavaScript:</p>
+        <pre><code>let n = await glue.py_random()();</code></pre>
+        <p>Python waits up to 10 seconds for a JS result by default (<code>js_result_timeout</code> on <code>glue.init</code>).</p>
+      </section>
+
+      <section class="docs-section" id="settings" data-reveal>
+        <h2>Settings</h2>
+        <p>Optional durable JSON for themes and app state. <strong>Python only</strong> — expose wrappers if the UI needs them.</p>
+        <pre><code>import glue
+
+glue.init(app_name='myapp')   # unlocks ~/.myapp/myapp.json
+
+data = glue.settings()        # {} if missing — nothing created yet
+data['theme'] = 'dark'
+glue.save_settings(data)      # first save creates the folder + file</code></pre>
+        <ul>
+          <li><code>glue.settings_path()</code> returns the default path when <code>app_name</code> is set.</li>
+          <li>Passing <code>app_name</code> alone does not create files.</li>
+        </ul>
+      </section>
+
+      <section class="docs-section" id="hosts" data-reveal>
+        <h2>Hosts</h2>
+        <p>Default order for <code>mode='auto'</code>:</p>
+        <ol>
+          <li><strong>PyWebView</strong> — native window</li>
+          <li><strong>Chrome/Chromium</strong> — <code>--app</code></li>
+          <li><strong>Edge</strong> — Windows only if Chrome is missing</li>
+        </ol>
+        <div class="docs-table-wrap">
+          <table class="docs-table">
+            <thead><tr><th>mode</th><th>Behavior</th></tr></thead>
+            <tbody>
+              <tr><td><code>'auto'</code></td><td>PyWebView → Chrome → Edge (Windows)</td></tr>
+              <tr><td><code>'webview'</code></td><td>PyWebView only</td></tr>
+              <tr><td><code>'chrome'</code> / <code>'edge'</code></td><td>Force that browser</td></tr>
+              <tr><td><code>None</code></td><td>Server only (tests / custom frontends)</td></tr>
+              <tr><td><code>'custom'</code></td><td>Raw Popen(cmdline_args)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>When <code>ui/favicon.ico</code> exists, Glue injects a favicon link into served HTML for Chrome/Edge captions. Full window options: <a href="api.html#start">API · start()</a>.</p>
+      </section>
+
+      <section class="docs-section" id="async" data-reveal>
+        <h2>Async Python</h2>
+        <p>Prefer <code>glue.sleep()</code> and <code>glue.spawn()</code> over <code>time.sleep()</code>. Monkey-patch gevent <strong>before</strong> importing Glue if needed.</p>
+        <pre><code>from gevent import monkey
+monkey.patch_all()
+import glue
+
+glue.init()
+
+def ticker():
+    while True:
+        print("tick")
+        glue.sleep(1.0)
+
+glue.spawn(ticker)
+glue.start(block=False)</code></pre>
+        <p>With <code>block=False</code>, <code>mode='auto'</code> skips PyWebView and uses Chrome/Edge.</p>
+      </section>
+
+      <section class="docs-section" id="package" data-reveal>
+        <h2>Package with PyInstaller</h2>
+        <ol>
+          <li>Clean virtualenv</li>
+          <li><code>pip install "glue-ui[build]"</code></li>
+          <li><code>python -m glue your_script.py ui</code></li>
+          <li>Ship from <code>dist/</code>; add <code>--onefile --noconsole</code> when ready</li>
+        </ol>
+      </section>
+
+      <section class="docs-section" id="layout" data-reveal>
+        <h2>Project layout</h2>
+        <pre><code>my_app.py
+ui/
+  index.html
+  css/
+  js/</code></pre>
+      </section>
+
+      <section class="docs-section" id="security" data-reveal>
+        <h2>Security</h2>
+        <p>By default Glue binds to <strong>localhost</strong> and only accepts WebSocket clients from loopback. Every <code>@glue.expose</code>d function is callable by any page that can open that socket.</p>
+        <ul>
+          <li>Do not put secrets under <code>ui/</code>.</li>
+          <li>Use <code>all_interfaces=True</code> only on trusted networks.</li>
+        </ul>
+      </section>
+
+      <p class="docs-footer">
+        Glue is a fork of <a href="https://github.com/python-eel/Eel" target="_blank" rel="noopener">Eel</a>.
+        Install with <code class="inline-code">pip install glue-ui</code> ·
+        <a href="https://github.com/alepodj/Glue" target="_blank" rel="noopener">GitHub</a>
+      </p>
+    </main>
+  </div>
+  <script src="js/site.js"></script>
+</body>
+</html>

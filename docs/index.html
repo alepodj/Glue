@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Glue</title>
+  <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;1,400&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/presentation.css" />
+  <link rel="stylesheet" href="css/site.css" />
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+</head>
+<body class="page-home" data-page="home">
+  <div id="site-nav" class="site-nav"></div>
+  <div class="atmosphere" aria-hidden="true">
+    <div class="orb orb-a"></div>
+    <div class="orb orb-b"></div>
+    <div class="grain"></div>
+  </div>
+
+  <!-- PAGE 1: Brand -->
+  <section class="page page-hero" id="page-hero" aria-label="Glue">
+    <div class="hero" id="hero">
+      <img class="logo" id="logo" src="assets/logo.png" width="420" height="420" alt="Glue logo" />
+      <h1 class="brand">Glue</h1>
+      <p class="slogan">
+        A little Python library for making Desktop applications
+        with web technologies <span class="tech">HTML/CSS/JS</span>.
+      </p>
+    </div>
+
+    <button type="button" class="scroll-cue" id="scroll-cue" aria-label="Continue">
+      <span class="scroll-cue__arrow" aria-hidden="true"></span>
+    </button>
+    <p class="version" id="version">Glue</p>
+  </section>
+
+  <!-- PAGE 2: Story (scrollable) -->
+  <section class="page page-story" id="page-story" aria-label="Why Glue" aria-hidden="true">
+    <div class="story-scroll" id="story-scroll">
+
+      <article class="panel panel-pitch" data-reveal>
+        <p class="kicker">The pitch</p>
+        <h2>If you already speak the web,<br />you already speak desktop.</h2>
+        <p class="lede">
+          Glue hosts a local window, then lets Python and JavaScript call each other.
+          No Electron ceremony. No new UI framework. Just HTML, CSS, JS — and Python where it belongs.
+        </p>
+      </article>
+
+      <article class="panel panel-steps" data-reveal>
+        <p class="kicker">Three lines to a window</p>
+        <h2>The simplest Glue app</h2>
+        <p class="lede">
+          Point Glue at a folder of UI files, then open a page. That is enough to ship a desktop window.
+        </p>
+        <pre class="code-sample" aria-label="Simplest Glue app"><code>import glue
+
+glue.init()
+glue.start('index.html')</code></pre>
+      </article>
+
+      <article class="panel panel-chrome" data-reveal>
+        <p class="kicker">Familiar window · better visuals</p>
+        <h2>Classic menus. Modern surface.</h2>
+        <p class="lede">
+          Build the UI you want in the browser — including the patterns people already know from desktop software.
+        </p>
+
+        <div class="os-demos" id="os-demos">
+          <!-- Windows -->
+          <div class="os-demo">
+            <p class="os-demo__label">Windows</p>
+            <div class="menubar menubar--win">
+              <div class="menubar__window">
+                <div class="menubar__titlebar">
+                  <div class="menubar__title">Untitled — Glue</div>
+                  <div class="menubar__sys" role="group" aria-label="Window controls">
+                    <button type="button" class="menubar__sys-btn" data-win="minimize" aria-label="Minimize" title="Minimize">
+                      <span class="menubar__sys-icon menubar__sys-icon--min" aria-hidden="true"></span>
+                    </button>
+                    <button type="button" class="menubar__sys-btn" data-win="maximize" aria-label="Maximize" title="Maximize">
+                      <span class="menubar__sys-icon menubar__sys-icon--max" aria-hidden="true"></span>
+                    </button>
+                    <button type="button" class="menubar__sys-btn menubar__sys-btn--close" data-win="close" aria-label="Close" title="Close">
+                      <span class="menubar__sys-icon menubar__sys-icon--close" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </div>
+                <nav class="menubar__nav">
+                  <div class="menu">
+                    <button type="button" class="menu__btn" aria-haspopup="true" aria-expanded="false">File</button>
+                    <div class="menu__panel" hidden>
+                      <button type="button" data-action="new">New Window</button>
+                      <button type="button" data-action="open">Open…</button>
+                      <hr />
+                      <button type="button" data-action="quit">Quit</button>
+                    </div>
+                  </div>
+                  <div class="menu">
+                    <button type="button" class="menu__btn" aria-haspopup="true" aria-expanded="false">Edit</button>
+                    <div class="menu__panel" hidden>
+                      <button type="button" data-action="undo">Undo</button>
+                      <button type="button" data-action="copy">Copy</button>
+                      <button type="button" data-action="paste">Paste</button>
+                    </div>
+                  </div>
+                  <div class="menu">
+                    <button type="button" class="menu__btn" aria-haspopup="true" aria-expanded="false">About</button>
+                    <div class="menu__panel" hidden>
+                      <button type="button" data-action="about">About Glue</button>
+                      <button type="button" data-action="docs">Documentation</button>
+                    </div>
+                  </div>
+                </nav>
+                <div class="menubar__body"><span class="menubar__status">App content lives here</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- macOS -->
+          <div class="os-demo">
+            <p class="os-demo__label">macOS</p>
+            <div class="menubar menubar--mac">
+              <div class="menubar__window">
+                <div class="menubar__titlebar">
+                  <div class="menubar__sys" role="group" aria-label="Window controls">
+                    <button type="button" class="menubar__sys-btn menubar__sys-btn--close" data-win="close" aria-label="Close" title="Close">
+                      <span class="menubar__traffic-dot" aria-hidden="true"></span>
+                    </button>
+                    <button type="button" class="menubar__sys-btn" data-win="minimize" aria-label="Minimize" title="Minimize">
+                      <span class="menubar__traffic-dot" aria-hidden="true"></span>
+                    </button>
+                    <button type="button" class="menubar__sys-btn" data-win="maximize" aria-label="Zoom" title="Zoom">
+                      <span class="menubar__traffic-dot" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                  <div class="menubar__title">Untitled — Glue</div>
+                  <div class="menubar__sys-spacer" aria-hidden="true"></div>
+                </div>
+                <nav class="menubar__nav">
+                  <div class="menu">
+                    <button type="button" class="menu__btn" aria-haspopup="true" aria-expanded="false">File</button>
+                    <div class="menu__panel" hidden>
+                      <button type="button" data-action="new">New Window</button>
+                      <button type="button" data-action="open">Open…</button>
+                      <hr />
+                      <button type="button" data-action="quit">Quit</button>
+                    </div>
+                  </div>
+                  <div class="menu">
+                    <button type="button" class="menu__btn" aria-haspopup="true" aria-expanded="false">Edit</button>
+                    <div class="menu__panel" hidden>
+                      <button type="button" data-action="undo">Undo</button>
+                      <button type="button" data-action="copy">Copy</button>
+                      <button type="button" data-action="paste">Paste</button>
+                    </div>
+                  </div>
+                  <div class="menu">
+                    <button type="button" class="menu__btn" aria-haspopup="true" aria-expanded="false">About</button>
+                    <div class="menu__panel" hidden>
+                      <button type="button" data-action="about">About Glue</button>
+                      <button type="button" data-action="docs">Documentation</button>
+                    </div>
+                  </div>
+                </nav>
+                <div class="menubar__body"><span class="menubar__status">App content lives here</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Linux / Ubuntu (gedit-style layout) -->
+          <div class="os-demo">
+            <p class="os-demo__label">Linux</p>
+            <div class="menubar menubar--linux">
+              <div class="menubar__window">
+                <div class="menubar__titlebar">
+                  <div class="menubar__title">*Untitled — Glue</div>
+                  <div class="menubar__sys" role="group" aria-label="Window controls">
+                    <button type="button" class="menubar__sys-btn" data-win="minimize" aria-label="Minimize" title="Minimize">
+                      <span class="menubar__sys-icon menubar__sys-icon--min" aria-hidden="true"></span>
+                    </button>
+                    <button type="button" class="menubar__sys-btn" data-win="maximize" aria-label="Maximize" title="Maximize">
+                      <span class="menubar__sys-icon menubar__sys-icon--max" aria-hidden="true"></span>
+                    </button>
+                    <button type="button" class="menubar__sys-btn menubar__sys-btn--close" data-win="close" aria-label="Close" title="Close">
+                      <span class="menubar__sys-icon menubar__sys-icon--close" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </div>
+                <nav class="menubar__nav">
+                  <div class="menu">
+                    <button type="button" class="menu__btn" aria-haspopup="true" aria-expanded="false"><span class="menu__accel">F</span>ile</button>
+                    <div class="menu__panel" hidden>
+                      <button type="button" data-action="new">New Window</button>
+                      <button type="button" data-action="open">Open…</button>
+                      <hr />
+                      <button type="button" data-action="quit">Quit</button>
+                    </div>
+                  </div>
+                  <div class="menu">
+                    <button type="button" class="menu__btn" aria-haspopup="true" aria-expanded="false"><span class="menu__accel">E</span>dit</button>
+                    <div class="menu__panel" hidden>
+                      <button type="button" data-action="undo">Undo</button>
+                      <button type="button" data-action="copy">Copy</button>
+                      <button type="button" data-action="paste">Paste</button>
+                    </div>
+                  </div>
+                  <div class="menu">
+                    <button type="button" class="menu__btn" aria-haspopup="true" aria-expanded="false"><span class="menu__accel">O</span>ptions</button>
+                    <div class="menu__panel" hidden>
+                      <button type="button" data-action="prefs">Preferences</button>
+                    </div>
+                  </div>
+                  <div class="menu">
+                    <button type="button" class="menu__btn" aria-haspopup="true" aria-expanded="false"><span class="menu__accel">H</span>elp</button>
+                    <div class="menu__panel" hidden>
+                      <button type="button" data-action="about">About Glue</button>
+                      <button type="button" data-action="docs">Documentation</button>
+                    </div>
+                  </div>
+                </nav>
+                <div class="menubar__toolbar" role="toolbar" aria-label="Toolbar">
+                  <button type="button" class="menubar__tool" data-tool="new" title="New" aria-label="New">
+                    <span class="tool-icon tool-icon--new" aria-hidden="true"></span>
+                  </button>
+                  <button type="button" class="menubar__tool" data-tool="open" title="Open" aria-label="Open">
+                    <span class="tool-icon tool-icon--open" aria-hidden="true"></span>
+                  </button>
+                  <button type="button" class="menubar__tool" data-tool="save" title="Save" aria-label="Save">
+                    <span class="tool-icon tool-icon--save" aria-hidden="true"></span>
+                  </button>
+                  <span class="menubar__tool-sep" aria-hidden="true"></span>
+                  <button type="button" class="menubar__tool" data-tool="undo" title="Undo" aria-label="Undo">
+                    <span class="tool-icon tool-icon--undo" aria-hidden="true"></span>
+                  </button>
+                  <button type="button" class="menubar__tool" data-tool="redo" title="Redo" aria-label="Redo">
+                    <span class="tool-icon tool-icon--redo" aria-hidden="true"></span>
+                  </button>
+                  <span class="menubar__tool-sep" aria-hidden="true"></span>
+                  <button type="button" class="menubar__tool" data-tool="search" title="Search" aria-label="Search">
+                    <span class="tool-icon tool-icon--search" aria-hidden="true"></span>
+                  </button>
+                </div>
+                <div class="menubar__body"><span class="menubar__status">App content lives here</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel panel-bridge" data-reveal>
+        <p class="kicker">Two directions · same bridge</p>
+        <h2>Frontend ↔ Backend</h2>
+        <p class="lede">
+          Each direction is its own call. Expose on one side, invoke from the other.
+        </p>
+
+        <!-- FRONT → BACK -->
+        <section class="bridge-flow" id="flow-f2b" aria-label="Frontend to backend">
+          <header class="bridge-flow__title">
+            <span class="bridge-flow__badge">Front → Back</span>
+            <h3>JavaScript calls Python</h3>
+            <p>UI asks the backend to do work, then reads the return value.</p>
+          </header>
+          <div class="bridge bridge--f2b">
+            <div class="bridge__pane">
+              <header>Frontend · JavaScript</header>
+              <pre class="bridge__code"><code>glue.bridge_echo({
+  message: "hello from the UI"
+})();</code></pre>
+              <pre class="bridge__log" id="f2b-log-js"><code>idle</code></pre>
+            </div>
+            <div class="bridge__mid">
+              <div class="bridge__wire" aria-hidden="true">
+                <span class="bridge__packet" id="f2b-packet"></span>
+              </div>
+              <p class="bridge__label" id="f2b-label">waiting</p>
+            </div>
+            <div class="bridge__pane">
+              <header>Backend · Python</header>
+              <pre class="bridge__code"><code>@glue.expose
+def bridge_echo(payload):
+    return {
+      "echo": payload["message"],
+      "from": "python",
+    }</code></pre>
+              <pre class="bridge__log" id="f2b-log-py"><code>idle</code></pre>
+            </div>
+          </div>
+        </section>
+
+        <!-- BACK → FRONT -->
+        <section class="bridge-flow" id="flow-b2f" aria-label="Backend to frontend">
+          <header class="bridge-flow__title">
+            <span class="bridge-flow__badge bridge-flow__badge--alt">Back → Front</span>
+            <h3>Python calls JavaScript</h3>
+            <p>Backend pushes into the UI through an exposed JS function.</p>
+          </header>
+          <div class="bridge bridge--b2f">
+            <div class="bridge__pane">
+              <header>Backend · Python</header>
+              <pre class="bridge__code"><code>glue.bridge_on_js({
+  "message": "hello from Python"
+})()</code></pre>
+              <pre class="bridge__log" id="b2f-log-py"><code>idle</code></pre>
+            </div>
+            <div class="bridge__mid">
+              <div class="bridge__wire" aria-hidden="true">
+                <span class="bridge__packet" id="b2f-packet"></span>
+              </div>
+              <p class="bridge__label" id="b2f-label">waiting</p>
+            </div>
+            <div class="bridge__pane">
+              <header>Frontend · JavaScript</header>
+              <pre class="bridge__code"><code>glue.expose(bridge_on_js);
+function bridge_on_js(payload) {
+  return {
+    echo: payload.message,
+    from: "javascript",
+  };
+}</code></pre>
+              <pre class="bridge__log" id="b2f-log-js"><code>idle</code></pre>
+            </div>
+          </div>
+        </section>
+      </article>
+
+      <article class="panel panel-simple" data-reveal>
+        <p class="kicker">Why it feels easy</p>
+        <ul class="bullets">
+          <li>
+            <strong>Your technologies, unchanged</strong>
+            <span>Bring the HTML, CSS, JS, and libraries you already use — now inside a desktop window.</span>
+          </li>
+          <li>
+            <strong>Python does the hard parts</strong>
+            <span>Files, processes, science libraries — one <code>@glue.expose</code> away.</span>
+          </li>
+          <li>
+            <strong>Ships as an app</strong>
+            <span>Chromium app-mode by default. Package later with PyInstaller.</span>
+          </li>
+        </ul>
+      </article>
+
+      <article class="panel panel-close" data-reveal>
+        <img class="logo logo--sm" src="assets/logo.png" width="160" height="160" alt="" />
+        <h2>Less framework. More Glue.</h2>
+        <p class="lede">
+          Start with a folder of UI files and a short Python script.
+          That is the whole idea.
+        </p>
+        <div class="pill-row home-cta">
+          <a class="pill" href="documentation.html">Documentation</a>
+          <a class="pill" href="https://pypi.org/project/glue-ui/">pip install glue-ui</a>
+          <a class="pill" href="https://github.com/alepodj/Glue" target="_blank" rel="noopener">GitHub</a>
+        </div>
+
+        <button type="button" class="scroll-cue scroll-cue--up" id="scroll-cue-up" aria-label="Back to cover">
+          <span class="scroll-cue__arrow" aria-hidden="true"></span>
+        </button>
+      </article>
+
+      <div class="story-end-space" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <script src="js/site.js"></script>
+  <script src="js/home-presentation.js"></script>
+</body>
+</html>

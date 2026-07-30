@@ -201,8 +201,28 @@ glue = {
         if(!barH){
             return;
         }
+        let rootOverflow = getComputedStyle(document.documentElement);
+        let bodyOverflow = getComputedStyle(document.body);
+        let contentOverflow = function(bodyValue, rootValue) {
+            let value = bodyValue === 'visible' ? rootValue : bodyValue;
+            if(value === 'visible'){
+                return 'auto';
+            }
+            if(value === 'clip'){
+                return 'hidden';
+            }
+            return value;
+        };
         document.documentElement.classList.add('glue-webview-chrome', 'glue-webview-chrome--' + os);
         document.documentElement.style.setProperty('--glue-titlebar-height', barH + 'px');
+        document.documentElement.style.setProperty(
+            '--glue-content-overflow-x',
+            contentOverflow(bodyOverflow.overflowX, rootOverflow.overflowX)
+        );
+        document.documentElement.style.setProperty(
+            '--glue-content-overflow-y',
+            contentOverflow(bodyOverflow.overflowY, rootOverflow.overflowY)
+        );
 
         let style = document.createElement('style');
         style.id = 'glue-titlebar-style';
@@ -215,17 +235,21 @@ html.glue-webview-chrome {
   box-sizing: border-box;
   height: 100%;
   padding-top: var(--glue-titlebar-height);
+  overflow: hidden;
 }
 html.glue-webview-chrome body {
   box-sizing: border-box;
   height: 100%;
   margin: 0;
   position: relative;
+  overflow-x: var(--glue-content-overflow-x, auto);
+  overflow-y: var(--glue-content-overflow-y, auto);
 }
 #glue-titlebar {
   position: fixed; top: 0; left: 0; right: 0; z-index: 2147483000;
   display: flex; align-items: center;
   height: var(--glue-titlebar-height);
+  box-sizing: border-box; contain: layout style paint; isolation: isolate;
   font-family: "Segoe UI", system-ui, -apple-system, "Ubuntu", sans-serif;
   font-size: 12px; user-select: none; -webkit-user-select: none;
   color: #1a1a1a; background: rgba(246,246,246,0.92);

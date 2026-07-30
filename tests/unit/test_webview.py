@@ -142,6 +142,15 @@ def test_titlebar_heights():
     assert webview.titlebar_height('linux') == 40
 
 
+def test_titlebar_owns_viewport_and_content_owns_scrolling():
+    js = glue._glue_js
+    assert 'html.glue-webview-chrome {' in js
+    assert 'overflow: hidden;' in js
+    assert 'overflow-y: var(--glue-content-overflow-y, auto);' in js
+    assert 'contentOverflow(bodyOverflow.overflowY, rootOverflow.overflowY)' in js
+    assert 'contain: layout style paint; isolation: isolate;' in js
+
+
 def test_platform_name(monkeypatch):
     monkeypatch.setattr(browsers_launcher.sys, 'platform', 'win32')
     assert webview.platform_name() == 'windows'

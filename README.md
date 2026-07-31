@@ -150,29 +150,33 @@ glue.expose(someFunction, "my_javascript_function");
 
 Full example: [`examples/01 - hello_world`](examples/01%20-%20hello_world)
 
-**`ui/hello.html`**
+**`ui/index.html`**
 
 ```html
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
   <head>
     <title>Hello, World!</title>
-    <script type="text/javascript" src="/glue.js"></script>
-    <script type="text/javascript">
-      glue.expose(say_hello_js);
-      function say_hello_js(x) {
-        console.log("Hello from " + x);
-      }
-
-      say_hello_js("Javascript World!");
-      glue.say_hello_py("Javascript World!");
-    </script>
+    <script src="/glue.js"></script>
+    <script src="/app.js" defer></script>
   </head>
   <body>Hello, World!</body>
 </html>
 ```
 
-**`hello.py`**
+**`ui/app.js`**
+
+```javascript
+glue.expose(say_hello_js);
+function say_hello_js(source) {
+  console.log(`Hello from ${source}`);
+}
+
+say_hello_js("JavaScript World!");
+glue.say_hello_py("JavaScript World!");
+```
+
+**`hello_world.py`**
 
 ```python
 import glue
@@ -186,10 +190,10 @@ def say_hello_py(x):
 say_hello_py('Python World!')
 glue.say_hello_js('Python World!')
 
-glue.start('hello.html')
+glue.start()
 ```
 
-Run `python hello.py`. Python→JS calls made before the page WebSocket connects are queued and flushed when the bridge is ready (the HTTP server is already up before the window opens).
+From the example directory, run `python hello_world.py`. Python→JS calls made before the page WebSocket connects are queued and flushed when the bridge is ready (the HTTP server is already up before the window opens).
 
 ---
 
@@ -287,6 +291,7 @@ Pass keyword arguments to `glue.start()`:
 | `webview_options` | `{}` | PyWebView | webview | Escape hatch for other [PyWebView](https://pywebview.flowrl.com/api/) kwargs; first-class kwargs win on conflict |
 | `size` | `None` → **1280×720** | both | webview / chrome / edge | Initial content size as `(width, height)` pixels |
 | `position` | `None` | both | webview / chrome / edge | Initial screen position as `(left, top)`; omit to leave placement to the host (usually centered) |
+| `centered` | `None` → splash default | both | webview / chrome / edge | Explicitly center the window. Automatically enabled with `splash`; use `False` to opt out. Explicit global `position` and per-page positions override the automatic default. On Windows PyWebView this uses the primary work area; Chrome/Edge/macOS/Linux rely on available-screen or host placement |
 | `title` | `'Glue'` | both | webview | Text in the native/in-page title bar (Chrome/Edge use the page `<title>`) |
 | `resizable` | `True` | both | webview | Allow the user to resize; on Windows frameless, Glue adds edge grips |
 
@@ -322,7 +327,9 @@ if __name__ == '__main__':
 
 Glue renders the image in an independent, frameless GLFW window with transparent
 pixels. It fades after the initial page loads, connects, and paints, while
-honoring the minimum duration. The guarded entrypoint is required by Windows
+honoring the minimum duration. The main app centers automatically when a splash
+is enabled; pass `centered=False` or `position=(x, y)` to override it. The
+guarded entrypoint is required by Windows
 multiprocessing and works with frozen applications. Missing optional
 dependencies or unavailable compositor transparency disable only the splash;
 the main app continues starting.
@@ -339,7 +346,7 @@ Default order for `mode='auto'`:
 2. **Chrome/Chromium** — app mode (`--app`) on all platforms
 3. **Edge** — Windows only, if Chrome is missing
 
-`size` / `position` / `geometry` apply on PyWebView as window kwargs, and on Chrome/Edge via `/glue.js` (`resizeTo` / `moveTo` on page load). When `ui/favicon.ico` is present, Glue injects a favicon `<link>` into served HTML so Chrome/Edge `--app` windows can show it in the caption.
+`size` / `position` / `centered` / `geometry` apply on PyWebView as window kwargs, and on Chrome/Edge via `/glue.js` (`resizeTo` / `moveTo` on page load). Splash-enabled apps center automatically unless `centered=False` or an explicit position is supplied. On Windows PyWebView, `centered=True` calculates the primary work-area position; elsewhere Glue omits coordinates or uses `screen.avail*` so the host/browser centers. An explicit per-page geometry position overrides centering. When `ui/favicon.ico` is present, Glue injects a favicon `<link>` into served HTML so Chrome/Edge `--app` windows can show it in the caption.
 
 PyWebView window options are first-class on [`glue.start()`](#app-options) (plus `webview_options` escape hatch).
 
@@ -421,6 +428,7 @@ See the [PyInstaller docs](https://pyinstaller.readthedocs.io/) for more.
 | [`09 - disable_cache`](examples/09%20-%20disable_cache) | Cache control |
 | [`10 - custom_app_routes`](examples/10%20-%20custom_app_routes) | Custom Bottle routes |
 | [`11 - splash`](examples/11%20-%20splash) | Transparent GLFW startup splash |
+| [`12 - scrolling`](examples/12%20-%20scrolling) | Scrolling content isolated below the title bar |
 
 ---
 

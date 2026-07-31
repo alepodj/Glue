@@ -44,6 +44,7 @@ tests/
   data/
     init_test/          # fixture *files* (HTML/JS/TSX) for expose()/init scanning — not a real app
   unit/                 # fast, mocked; no browser
+    test_example_quality.py
     test_init.py
     test_expose.py
     test_browsers.py
@@ -63,7 +64,7 @@ tests/
 | **`unit/`** | Library behavior in-process. Run these constantly. |
 | **`integration/`** | Spawns real example scripts with `mode=None`, opens pages in headless Chrome. Slower; needs Chrome installed. |
 
-Integration covers selected examples (hello world, callbacks, file access, jinja, custom routes). Others are skipped on purpose (e.g. `02` forces Chrome but the harness overrides `mode=None`; CRA needs an npm build). See the module docstring in `tests/integration/test_examples.py`.
+Integration covers selected examples (hello world, callbacks, file access, input, Jinja, custom routes). Source-level tests also keep every numbered example contiguous, compilable, standalone, and consistently presented. Native-window demonstrations and CRA remain intentionally outside Selenium. See the module docstrings in `tests/unit/test_example_quality.py` and `tests/integration/test_examples.py`.
 
 ---
 
@@ -79,9 +80,9 @@ python -m pytest tests/unit -q
 python -m pytest tests -q --timeout=240
 
 # Lint / format (Ruff — we do not use Black)
-ruff check glue tests
-ruff format glue tests           # write
-ruff format --check glue tests   # CI-style check
+ruff check glue tests examples
+ruff format glue tests examples           # write
+ruff format --check glue tests examples   # CI-style check
 
 # Types
 mypy --strict glue

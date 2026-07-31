@@ -131,6 +131,40 @@ def _geometry_kwargs(url: str, options: OptionsDictT) -> dict[str, Any]:
     return kwargs
 
 
+def _should_center(url: str, options: OptionsDictT) -> bool:
+    if not options.get('centered', False):
+        return False
+    page_geo = (options.get('geometry') or {}).get(_page_key(url))
+    return not page_geo or page_geo.get('position') is None
+
+
+def _win32_centered_position(width: int, height: int) -> tuple[int, int] | None:
+    """Return the Windows primary work-area center, excluding the taskbar."""
+    if platform_name() != 'windows':
+        return None
+
+    class Rect(ctypes.Structure):
+        _fields_ = [
+            ('left', ctypes.c_long),
+            ('top', ctypes.c_long),
+            ('right', ctypes.c_long),
+            ('bottom', ctypes.c_long),
+        ]
+
+    work_area = Rect()
+    try:
+        if not ctypes.windll.user32.SystemParametersInfoW(0x0030, 0, ctypes.byref(work_area), 0):
+            return None
+    except (AttributeError, OSError):
+        return None
+    work_width = work_area.right - work_area.left
+    work_height = work_area.bottom - work_area.top
+    return (
+        work_area.left + max(0, (work_width - width) // 2),
+        work_area.top + max(0, (work_height - height) // 2),
+    )
+
+
 def _split_webview_options(
     options: OptionsDictT,
 ) -> tuple[dict[str, Any], dict[str, Any], str]:
@@ -230,6 +264,65 @@ def _start_win32_resize(window: Any, edge: str) -> bool:
     return True
 
 
+def _toggle_maximize_window(window: Any) -> None:
+    key = id(window)
+    if _maximized.get(key, bool(getattr(window, 'maximized', False))):
+        window.restore()
+        _maximized[key] = False
+        try:
+            window.maximized = False
+        except Exception:
+            pass
+    else:
+        window.maximize()
+        _maximized[key] = True
+        try:
+            window.maximized = True
+        except Exception:
+            pass
+
+
+def _fallback_window() -> Any | None:
+    """Single-window Glue-bridge fallback when ``pywebview.api`` is unavailable."""
+    windows = get_windows()
+    if len(windows) != 1:
+        return None
+    return windows[0]
+
+
+def _expose_window_controls(window: Any, *, frameless: bool, resizable: bool) -> None:
+    """Expose per-window titlebar/resize APIs on ``window.pywebview.api``."""
+
+    def webview_minimize(_win: Any = window) -> None:
+        _win.minimize()
+
+    def webview_toggle_maximize(_win: Any = window) -> None:
+        _toggle_maximize_window(_win)
+
+    def webview_close(_win: Any = window) -> None:
+        _win.destroy()
+
+    try:
+        window.expose(webview_minimize)
+        window.expose(webview_toggle_maximize)
+        window.expose(webview_close)
+    except Exception:
+        pass
+
+    if frameless and resizable and platform_name() == 'windows':
+        # Must be pywebview.api (sync-ish), not Glue websockets — Win32
+        # WM_NCLBUTTONDOWN has to run while the mouse button is still down.
+        def webview_start_resize(edge: str, _win: Any = window) -> bool:
+            if _maximized.get(id(_win), bool(getattr(_win, 'maximized', False))):
+                return False
+            return _start_win32_resize(_win, edge)
+
+        try:
+            window.expose(webview_start_resize)
+        except Exception:
+            pass
+
+
 def _register_window_api() -> None:
     """Expose minimize / maximize / close / resize to JavaScript via the Glue bridge."""
     import glue as glue_mod
@@ -238,29 +331,18 @@ def _register_window_api() -> None:
         return
 
     def webview_minimize() -> None:
-        for window in get_windows():
+        window = _fallback_window()
+        if window is not None:
             window.minimize()
 
     def webview_toggle_maximize() -> None:
-        for window in get_windows():
-            key = id(window)
-            if _maximized.get(key, bool(getattr(window, 'maximized', False))):
-                window.restore()
-                _maximized[key] = False
-                try:
-                    window.maximized = False
-                except Exception:
-                    pass
-            else:
-                window.maximize()
-                _maximized[key] = True
-                try:
-                    window.maximized = True
-                except Exception:
-                    pass
+        window = _fallback_window()
+        if window is not None:
+            _toggle_maximize_window(window)
 
     def webview_close() -> None:
-        for window in list(get_windows()):
+        window = _fallback_window()
+        if window is not None:
             window.destroy()
 
     def webview_platform() -> str:
@@ -272,13 +354,12 @@ def _register_window_api() -> None:
             return False
         if not isinstance(edge, str):
             return False
-        ok = False
-        for window in get_windows():
-            if _maximized.get(id(window), bool(getattr(window, 'maximized', False))):
-                continue
-            if _start_win32_resize(window, edge):
-                ok = True
-        return ok
+        window = _fallback_window()
+        if window is None:
+            return False
+        if _maximized.get(id(window), bool(getattr(window, 'maximized', False))):
+            return False
+        return _start_win32_resize(window, edge)
 
     glue_mod._expose('webview_minimize', webview_minimize)
     glue_mod._expose('webview_toggle_maximize', webview_toggle_maximize)
@@ -356,23 +437,24 @@ def _create_windows(
         kwargs.update(_geometry_kwargs(url, options))
         if frameless:
             kwargs['height'] = int(kwargs['height']) + bar_h
+        if _should_center(url, options):
+            # Explicit centering wins over escape-hatch x/y. PyWebView centers
+            # omitted coordinates on other platforms; Windows is calculated
+            # directly so centered=True has deterministic work-area semantics.
+            kwargs.pop('x', None)
+            kwargs.pop('y', None)
+            centered_position = _win32_centered_position(
+                int(kwargs['width']), int(kwargs['height'])
+            )
+            if centered_position is not None:
+                kwargs['x'], kwargs['y'] = centered_position
         kwargs['title'] = title
         kwargs['url'] = url
         window = webview.create_window(**kwargs)
         _windows.append(window)
         _maximized[id(window)] = bool(kwargs.get('maximized', False))
-        if frameless and resizable and platform_name() == 'windows':
-            # Must be pywebview.api (sync-ish), not Glue websockets — Win32
-            # WM_NCLBUTTONDOWN has to run while the mouse button is still down.
-            def webview_start_resize(edge: str, _win: Any = window) -> bool:
-                if _maximized.get(id(_win), bool(getattr(_win, 'maximized', False))):
-                    return False
-                return _start_win32_resize(_win, edge)
-
-            try:
-                window.expose(webview_start_resize)
-            except Exception:
-                pass
+        if frameless:
+            _expose_window_controls(window, frameless=frameless, resizable=resizable)
 
 
 def open_urls(

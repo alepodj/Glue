@@ -113,10 +113,19 @@ glue = {
     _position_window: function(page) {
         let size = glue._start_geometry['default'].size;
         let position = glue._start_geometry['default'].position;
+        let centered = glue._start_geometry['default'].centered;
 
         if(page in glue._start_geometry.pages) {
-            size = glue._start_geometry.pages[page].size;
-            position = glue._start_geometry.pages[page].position;
+            let pageGeometry = glue._start_geometry.pages[page];
+            if(pageGeometry.size !== undefined){
+                size = pageGeometry.size;
+            }
+            // Only a concrete (x, y) disables centering. position: null means
+            // "no page override", matching PyWebView's _should_center().
+            if(pageGeometry.position != null){
+                position = pageGeometry.position;
+                centered = false;
+            }
         }
 
         if(size != null){
@@ -131,6 +140,14 @@ glue = {
 
         if(position != null){
             window.moveTo(position[0], position[1]);
+        } else if(centered){
+            requestAnimationFrame(function() {
+                let availableLeft = Number.isFinite(screen.availLeft) ? screen.availLeft : 0;
+                let availableTop = Number.isFinite(screen.availTop) ? screen.availTop : 0;
+                let left = availableLeft + Math.max(0, (screen.availWidth - window.outerWidth) / 2);
+                let top = availableTop + Math.max(0, (screen.availHeight - window.outerHeight) / 2);
+                window.moveTo(Math.round(left), Math.round(top));
+            });
         }
     },
 
@@ -394,12 +411,27 @@ html.glue-webview-chrome--linux #glue-titlebar .glue-titlebar__title { opacity: 
                 return;
             }
             let action = btn.getAttribute('data-glue-win');
-            if(action === 'minimize' && typeof glue.webview_minimize === 'function'){
-                glue.webview_minimize()();
-            } else if(action === 'maximize' && typeof glue.webview_toggle_maximize === 'function'){
-                glue.webview_toggle_maximize()();
-            } else if(action === 'close' && typeof glue.webview_close === 'function'){
-                glue.webview_close()();
+            // Prefer the owning window's pywebview.api so multi-window sessions
+            // only affect the clicked window.
+            let api = window.pywebview && window.pywebview.api;
+            if(action === 'minimize'){
+                if(api && typeof api.webview_minimize === 'function'){
+                    api.webview_minimize();
+                } else if(typeof glue.webview_minimize === 'function'){
+                    glue.webview_minimize()();
+                }
+            } else if(action === 'maximize'){
+                if(api && typeof api.webview_toggle_maximize === 'function'){
+                    api.webview_toggle_maximize();
+                } else if(typeof glue.webview_toggle_maximize === 'function'){
+                    glue.webview_toggle_maximize()();
+                }
+            } else if(action === 'close'){
+                if(api && typeof api.webview_close === 'function'){
+                    api.webview_close();
+                } else if(typeof glue.webview_close === 'function'){
+                    glue.webview_close()();
+                }
             }
         });
 

@@ -91,7 +91,7 @@ def _load_gl(glfw: Any) -> dict[str, Any]:
 
 def _load_frames(image_path: str) -> tuple[list[tuple[bytes, float]], tuple[int, int]]:
     """Decode PNG/GIF frames into complete RGBA canvases."""
-    from PIL import Image
+    from PIL import Image  # type: ignore[import-not-found]
 
     frames: list[tuple[bytes, float]] = []
     with Image.open(Path(image_path)) as image:
@@ -226,7 +226,7 @@ def run_worker(
     texture = None
     gl: dict[str, Any] | None = None
     try:
-        import glfw as glfw_module
+        import glfw as glfw_module  # type: ignore[import-not-found]
 
         glfw = glfw_module
         # Import and decode before creating a window, so invalid images never flash.

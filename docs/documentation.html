@@ -93,22 +93,25 @@ glue.js_random()(print)         # or use a callback</code></pre>
       <section class="docs-section" id="hello-world" data-reveal>
         <h2>Hello, World!</h2>
         <p>Full example lives in <code>examples/01 - hello_world</code> on GitHub.</p>
-        <h3>ui/hello.html</h3>
+        <h3>ui/index.html</h3>
         <pre><code>&lt;!DOCTYPE html&gt;
-&lt;html&gt;
+&lt;html lang="en"&gt;
   &lt;head&gt;
     &lt;title&gt;Hello, World!&lt;/title&gt;
-    &lt;script type="text/javascript" src="/glue.js"&gt;&lt;/script&gt;
-    &lt;script&gt;
-      glue.expose(say_hello_js);
-      function say_hello_js(x) { console.log("Hello from " + x); }
-      say_hello_js("Javascript World!");
-      glue.say_hello_py("Javascript World!");
-    &lt;/script&gt;
+    &lt;script src="/glue.js"&gt;&lt;/script&gt;
+    &lt;script src="/app.js" defer&gt;&lt;/script&gt;
   &lt;/head&gt;
   &lt;body&gt;Hello, World!&lt;/body&gt;
 &lt;/html&gt;</code></pre>
-        <h3>hello.py</h3>
+        <h3>ui/app.js</h3>
+        <pre><code>glue.expose(say_hello_js);
+function say_hello_js(source) {
+  console.log(`Hello from ${source}`);
+}
+
+say_hello_js("JavaScript World!");
+glue.say_hello_py("JavaScript World!");</code></pre>
+        <h3>hello_world.py</h3>
         <pre><code>import glue
 
 glue.init()
@@ -119,7 +122,7 @@ def say_hello_py(x):
 
 say_hello_py('Python World!')
 glue.say_hello_js('Python World!')
-glue.start('hello.html')</code></pre>
+glue.start()</code></pre>
       </section>
 
       <section class="docs-section" id="return-values" data-reveal>

@@ -2,9 +2,9 @@ from datetime import datetime, timezone
 
 import glue
 
-glue.init()
-
 PRESENTATION_SIZE = (1920, 1080)
+
+glue.init()
 
 
 @glue.expose

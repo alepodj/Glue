@@ -123,6 +123,7 @@ def internal_name():
               <tr><td><code>webview_options</code></td><td><code>{}</code></td><td>Escape hatch; kwargs win</td></tr>
               <tr><td><code>size</code></td><td>1280×720</td><td><code>(width, height)</code></td></tr>
               <tr><td><code>position</code></td><td><code>None</code></td><td><code>(left, top)</code></td></tr>
+              <tr><td><code>centered</code></td><td><code>None</code> → splash</td><td>Center the window; automatic with splash. Windows PyWebView uses the work area; other hosts use available-screen/host placement</td></tr>
               <tr><td><code>title</code></td><td><code>'Glue'</code></td><td>Window / in-page title</td></tr>
               <tr><td><code>resizable</code></td><td><code>True</code></td><td>User resize; Win edge grips</td></tr>
             </tbody>
@@ -258,6 +259,7 @@ glue.add(1, 2)(console.log);  // callback style</code></pre>
               <tr><td><code>webview_options</code></td><td><code>{}</code></td><td>PyWebView</td><td>webview</td><td>Escape hatch for other PyWebView kwargs; first-class kwargs win on conflict</td></tr>
               <tr><td><code>size</code></td><td><code>None</code> → <strong>1280×720</strong></td><td>both</td><td>webview / chrome / edge</td><td>Initial content size as <code>(width, height)</code> pixels</td></tr>
               <tr><td><code>position</code></td><td><code>None</code></td><td>both</td><td>webview / chrome / edge</td><td>Initial screen position as <code>(left, top)</code>; omit for host placement</td></tr>
+              <tr><td><code>centered</code></td><td><code>None</code> → splash default</td><td>both</td><td>webview / chrome / edge</td><td>Center the window. Automatically enabled with <code>splash</code>; use <code>False</code> to opt out. Explicit positions override the automatic default. Windows PyWebView uses the primary work area; Chrome/Edge/macOS/Linux use available-screen or host placement</td></tr>
               <tr><td><code>title</code></td><td><code>'Glue'</code></td><td>both</td><td>webview</td><td>Text in the native/in-page title bar (Chrome/Edge use the page <code>&lt;title&gt;</code> / injected title)</td></tr>
               <tr><td><code>resizable</code></td><td><code>True</code></td><td>both</td><td>webview</td><td>Allow resize; on Windows frameless, Glue adds edge grips</td></tr>
             </tbody>

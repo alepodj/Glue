@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hello, World! (Chrome)</title>
+  <script src="/glue.js"></script>
+  <script src="/app.js" defer></script>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, system-ui, sans-serif; color: #e8f4ff; background: #071018; }
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; margin: 0; }
+    body { display: grid; place-items: center; padding: 32px; background: radial-gradient(circle at 80% 10%, #173e35, transparent 38rem), #071018; }
+    main { width: min(680px, 100%); padding: clamp(32px, 7vw, 72px); border: 1px solid rgb(52 211 153 / 24%); border-radius: 24px; background: rgb(10 18 28 / 82%); box-shadow: 0 28px 90px rgb(0 0 0 / 34%); }
+    .eyebrow { margin: 0 0 12px; color: #54e4b5; font: 700 .75rem/1 ui-monospace, monospace; letter-spacing: .14em; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(2.5rem, 8vw, 5rem); letter-spacing: -.05em; }
+    p { color: #a8bdd0; line-height: 1.65; }
+    .host { display: inline-flex; margin: 10px 0 18px; padding: 7px 10px; border-radius: 999px; color: #9bf4d5; background: rgb(52 211 153 / 12%); font: 700 .8rem/1 ui-monospace, monospace; }
+    ul { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+    li { padding: 13px 15px; border-radius: 12px; color: #d5f4ea; background: rgb(52 211 153 / 8%); font-family: ui-monospace, monospace; }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">Example 02 · Forced host</p>
+    <h1>Hello, Chrome.</h1>
+    <p>The bridge is unchanged; only host selection is forced.</p>
+    <span class="host">mode='chrome'</span>
+    <ul id="log" aria-live="polite"></ul>
+  </main>
+</body>
+</html>

@@ -57,7 +57,7 @@ def say_hello_py(x):
 say_hello_py('Python World!')
 glue.say_hello_js('Python World!')
 
-glue.start('hello.html')</code></pre>
+glue.start()</code></pre>
           </div>
           <div class="card__foot">
             <a href="https://github.com/alepodj/Glue/tree/main/examples/01%20-%20hello_world" target="_blank" rel="noopener">View on GitHub →</a>
@@ -81,7 +81,7 @@ say_hello_py('Python World!')
 glue.say_hello_js('Python World!')
 
 # Force Google Chrome/Chromium (app mode still on)
-glue.start('hello.html', mode='chrome')</code></pre>
+glue.start(mode='chrome')</code></pre>
           </div>
           <div class="card__foot">
             <a href="https://github.com/alepodj/Glue/tree/main/examples/02%20-%20hello_world_chrome" target="_blank" rel="noopener">View on GitHub →</a>
@@ -109,17 +109,17 @@ def py_exception(error):
     return "No Error"
 
 def print_num(n):
-    print('Got this from Javascript:', n)
+    print('Got this from JavaScript:', n)
 
 def print_num_failed(error, stack):
     print("Error:", error)
     print("Stack:", stack)
 
 glue.js_random()(print_num)
-glue.js_random()(lambda n: print('Got this from Javascript:', n))
+glue.js_random()(lambda n: print('Got this from JavaScript:', n))
 glue.js_with_error()(print_num, print_num_failed)
 
-glue.start('callbacks.html')</code></pre>
+glue.start()</code></pre>
           </div>
           <div class="card__foot">
             <a href="https://github.com/alepodj/Glue/tree/main/examples/03%20-%20callbacks" target="_blank" rel="noopener">View on GitHub →</a>
@@ -140,11 +140,11 @@ glue.init()
 def py_random():
     return random.random()
 
-glue.start('sync_callbacks.html', block=False)
+glue.start(block=False)
 
 # Sync calls must happen after start()
 n = glue.js_random()()
-print('Got this from Javascript:', n)
+print('Got this from JavaScript:', n)
 
 while True:
     glue.sleep(1.0)</code></pre>
@@ -167,11 +167,14 @@ glue.init()
 
 @glue.expose
 def pick_file(folder):
+    folder = os.path.expanduser(folder)
     if os.path.isdir(folder):
-        return random.choice(os.listdir(folder))
-    return 'Not valid folder'
+        files = [name for name in os.listdir(folder)
+                 if os.path.isfile(os.path.join(folder, name))]
+        return random.choice(files) if files else 'No files'
+    return 'Not a valid folder'
 
-glue.start('file_access.html')</code></pre>
+glue.start()</code></pre>
           </div>
           <div class="card__foot">
             <a href="https://github.com/alepodj/Glue/tree/main/examples/05%20-%20file_access" target="_blank" rel="noopener">View on GitHub →</a>
@@ -188,12 +191,11 @@ glue.start('file_access.html')</code></pre>
 glue.init()
 
 @glue.expose
-def handleinput(x):
-    print('%s' % x)
+def handle_input(value):
+    print(value)
+    return 'Received by Python: %s' % value
 
-glue.say_hello_js('connected!')
-
-glue.start('main.html')</code></pre>
+glue.start()</code></pre>
           </div>
           <div class="card__foot">
             <a href="https://github.com/alepodj/Glue/tree/main/examples/06%20-%20input" target="_blank" rel="noopener">View on GitHub →</a>
@@ -222,7 +224,7 @@ say_hello_py('Python World!')
 glue.say_hello_js('Python World!')
 
 glue.start(
-    'templates/hello.html',
+    'templates/index.html',
     jinja_templates='templates',
 )</code></pre>
           </div>
@@ -284,7 +286,6 @@ if __name__ == '__main__':
 glue.init()
 
 glue.start(
-    'disable_cache.html',
     disable_cache=True,
 )</code></pre>
           </div>
@@ -305,14 +306,14 @@ app = bottle.Bottle()
 
 @app.route('/custom')
 def custom_route():
-    return 'Hello, World!'
+    return {'message': 'Hello from a custom Bottle route'}
 
 glue.init()
 
 # If wrapping Bottle with middleware, also call:
 # glue.register_glue_routes(app)
 
-glue.start('index.html', app=app)</code></pre>
+glue.start(app=app)</code></pre>
           </div>
           <div class="card__foot">
             <a href="https://github.com/alepodj/Glue/tree/main/examples/10%20-%20custom_app_routes" target="_blank" rel="noopener">View on GitHub →</a>
@@ -337,6 +338,22 @@ if __name__ == '__main__':
           </div>
           <div class="card__foot">
             <a href="https://github.com/alepodj/Glue/tree/main/examples/11%20-%20splash" target="_blank" rel="noopener">View on GitHub →</a>
+          </div>
+        </article>
+
+        <article class="card" id="ex-12" data-reveal>
+          <div class="card__body">
+            <span class="tag">12 - scrolling</span>
+            <h3>Scrolling below window controls</h3>
+            <p>Repo: <code>examples/12 - scrolling</code></p>
+            <pre><code>import glue
+
+glue.init()
+glue.start()</code></pre>
+            <p>A naturally overflowing page scrolls beneath the simulated native title bar while its controls remain fixed.</p>
+          </div>
+          <div class="card__foot">
+            <a href="https://github.com/alepodj/Glue/tree/main/examples/12%20-%20scrolling" target="_blank" rel="noopener">View on GitHub →</a>
           </div>
         </article>
       </div>

@@ -1,35 +1,22 @@
 """Transparent startup splash using Glue's public splash API."""
 
+# The splash renderer uses a spawned process. freeze_support() below keeps that
+# process safe on Windows and in frozen/PyInstaller applications.
 import multiprocessing
-from pathlib import Path
-
-import bottle
 
 import glue
 
-HERE = Path(__file__).resolve().parent
-UI_DIR = HERE / 'ui'
-ASSET_DIR = HERE.parents[1] / 'assets'
-LOGO_PATH = ASSET_DIR / 'android-chrome-512x512.png'
-
 
 def main():
-    app = bottle.Bottle()
+    glue.init()
 
-    @app.get('/splash-logo.png')
-    def splash_logo():
-        return bottle.static_file(LOGO_PATH.name, root=str(ASSET_DIR))
-
-    glue.init(path=str(UI_DIR), app_name='glue-splash-demo')
-    glue.start(
-        mode='webview',
-        port=0,
-        app=app,
-        title='Glue Splash API',
-        splash=LOGO_PATH,
-    )
+    # True auto-discovers ui/splash.png. Every other start option stays at its
+    # normal default. Splash-enabled apps also center automatically.
+    glue.start(splash=True)
 
 
+# Required with multiprocessing spawn: a splash child imports this file, but
+# must not run main() and recursively launch another application.
 if __name__ == '__main__':
     multiprocessing.freeze_support()
     main()

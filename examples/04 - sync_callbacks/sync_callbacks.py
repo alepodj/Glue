@@ -1,25 +1,21 @@
-import os
-import sys
 import random
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 import glue
 
 glue.init()
+
 
 @glue.expose
 def py_random():
     return random.random()
 
-glue.start('sync_callbacks.html', block=False)
 
-# Synchronous calls must happen after start() is called
+glue.start(block=False)
 
-# Get result returned synchronously by
-# passing nothing in second brackets
-#                   v
+# Synchronous calls must happen after start(). Empty second parentheses wait
+# for and return the JavaScript result.
 n = glue.js_random()()
-print('Got this from Javascript:', n)
+print('Got this from JavaScript:', n)
 
 while True:
     glue.sleep(1.0)

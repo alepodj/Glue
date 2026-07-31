@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hello, World!</title>
+  <script src="/glue.js"></script>
+  <script src="/app.js" defer></script>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, system-ui, sans-serif; color: #e8f4ff; background: #071018; }
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; margin: 0; }
+    body { display: grid; place-items: center; padding: 32px; background: radial-gradient(circle at 20% 10%, #12345a, transparent 38rem), #071018; }
+    main { width: min(680px, 100%); padding: clamp(32px, 7vw, 72px); border: 1px solid rgb(62 200 255 / 24%); border-radius: 24px; background: rgb(10 18 28 / 82%); box-shadow: 0 28px 90px rgb(0 0 0 / 34%); }
+    .eyebrow { margin: 0 0 12px; color: #3ec8ff; font: 700 .75rem/1 ui-monospace, monospace; letter-spacing: .14em; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(2.5rem, 8vw, 5rem); letter-spacing: -.05em; }
+    p { color: #a8bdd0; line-height: 1.65; }
+    ul { display: grid; gap: 10px; margin: 28px 0 0; padding: 0; list-style: none; }
+    li { padding: 13px 15px; border-radius: 12px; color: #cde8f7; background: rgb(62 200 255 / 8%); font-family: ui-monospace, monospace; }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">Example 01 · Two-way bridge</p>
+    <h1>Hello, Glue.</h1>
+    <p>Python and JavaScript call each other through the injected bridge.</p>
+    <ul id="log" aria-live="polite"></ul>
+  </main>
+</body>
+</html>

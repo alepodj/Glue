@@ -1,22 +1,57 @@
-> "Hello World example": Create-React-App (CRA) and Glue
+# 08 - Create React App
 
-## Extra Installation Instructions
+A React + TypeScript frontend connected to Glue.
 
-As discussed in the [main README](https://github.com/alepodj/Glue), the CreateReactApp (CRA) JavaScript framework can work with Glue. This particular project was bootstrapped with `npx create-react-app 08_CreateReactApp --typescript` (Typescript enabled), but the below modifications can be implemented in any CRA configuration or CRA version.
+## What it demonstrates
 
-If you run into any issues with this example, open a [new issue](https://github.com/alepodj/Glue/issues/new).
+- Serving a compiled Create React App build with Glue.
+- Connecting Glue to the CRA development server.
+- Preserving exposed JavaScript names through production minification.
 
-### Running
+## Files
 
-1. **Install JS packages:** in this directory, run `npm install`
-2. **Run Python:** `python glue_CRA.py`
-3. **Distribute:** (Run `npm run build` first) Build a binary distribution with PyInstaller using `python -m glue glue_CRA.py build --onefile` (See more detailed PyInstaller instructions at bottom of [the main README](https://github.com/alepodj/Glue))
+- `createreactapp.py` — Glue entry point for development and production.
+- `public/index.html` — CRA document template.
+- `src/App.tsx` — React application and exposed JavaScript functions.
+- `src/App.css` — application-specific styling.
 
-### JS exposure when using a minifier
+CRA's generated filenames are retained because its build tooling depends on
+them.
 
-`npm run build` will rename variables and functions to minimize file size renaming `glue.expose(funcName)` to something like `D.expose(J)`. The renaming breaks Glue's static JS-code analyzer, which looks for `glue.expose(*)`. To fix this issue, in your JS code, convert all `glue.expose(funcName)` to `window.glue.expose(funcName, 'funcName')`. This workaround guarantees that 'funcName' will be available to call from Python.
+## Run
 
-### Notable files
+Install the JavaScript dependencies:
 
-- `glue_CRA.py`: Basic Glue entry file
-  - If run without arguments, the script will load `index.html` from the build/ directory (which is ideal for building with PyInstaller/distribution)
+```powershell
+cd "examples/08 - createreactapp"
+npm install
+```
+
+For development, run `npm start`, then in another terminal:
+
+```powershell
+python createreactapp.py develop
+```
+
+For the production build:
+
+```powershell
+npm run build
+python createreactapp.py
+```
+
+## Key API
+
+```python
+glue.init(str(directory), ['.tsx', '.ts', '.jsx', '.js', '.html'])
+glue.start(page, mode=mode, host='localhost', port=8080)
+```
+
+These explicit paths and host options are required to switch between CRA's
+development server and compiled build.
+
+## Minified function names
+
+Production minification can rename `glue.expose(functionName)`. Use
+`window.glue.expose(functionName, 'functionName')` in minified source so Glue's
+static analyzer and Python calls retain the public name.

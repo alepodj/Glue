@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Glue Scrolling Example</title>
+  <script src="/glue.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+      color: #e8edf7;
+      background: #0d1321;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    main {
+      width: min(880px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 52px 0 80px;
+    }
+
+    header {
+      margin-bottom: 34px;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(2rem, 5vw, 4rem);
+      line-height: 1;
+    }
+
+    p {
+      color: #aebbd0;
+      line-height: 1.65;
+    }
+
+    .notice {
+      padding: 18px 20px;
+      border: 1px solid #2c3d5f;
+      border-radius: 14px;
+      background: #141e31;
+    }
+
+    .sections {
+      display: grid;
+      gap: 18px;
+      margin-top: 28px;
+    }
+
+    section {
+      min-height: 180px;
+      padding: 24px;
+      border: 1px solid #263654;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #162238, #111a2a);
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.18);
+    }
+
+    section h2 {
+      margin: 0 0 8px;
+      color: #68d8c8;
+      font-size: 1.15rem;
+    }
+
+    footer {
+      padding-top: 36px;
+      color: #68d8c8;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Natural page scrolling</h1>
+      <p class="notice">
+        This application uses the default <code>glue.init()</code> and
+        <code>glue.start()</code> calls. The content is intentionally long:
+        only the page area should scroll while the window controls remain
+        fixed and unaffected above it.
+      </p>
+    </header>
+
+    <div class="sections">
+      <section><h2>Section 01</h2><p>Scroll down and watch the title bar. Its minimize, maximize, and close controls stay outside the scrolling content.</p></section>
+      <section><h2>Section 02</h2><p>The scrollbar begins below Glue's simulated native title bar instead of extending behind the window controls.</p></section>
+      <section><h2>Section 03</h2><p>No window options, overflow declarations, or special layout workarounds are used by this example.</p></section>
+      <section><h2>Section 04</h2><p>The title bar owns the top of the viewport while the document body owns the remaining scrollable area.</p></section>
+      <section><h2>Section 05</h2><p>Regular wheel, touchpad, keyboard, and scrollbar navigation should all move only this content.</p></section>
+      <section><h2>Section 06</h2><p>Long application pages can therefore behave like normal web pages without interfering with window chrome.</p></section>
+      <section><h2>Section 07</h2><p>The fixed controls remain clickable throughout the test and never move with the document.</p></section>
+      <section><h2>Section 08</h2><p>Resize the window to create more or less overflow; the boundary beneath the title bar remains consistent.</p></section>
+      <section><h2>Section 09</h2><p>This section adds more vertical space so the browser must maintain a genuine scrolling surface.</p></section>
+      <section><h2>Section 10</h2><p>The end is close. The title bar should still look and behave exactly as it did at the top.</p></section>
+      <section><h2>Section 11</h2><p>One final section confirms that reaching the bottom never shifts or overlays the window controls.</p></section>
+    </div>
+
+    <footer>Bottom reached — the title bar remained independent.</footer>
+  </main>
+</body>
+</html>

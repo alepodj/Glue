@@ -29,7 +29,16 @@ setup(
     description='For little HTML GUI applications, with easy Python/JS interop',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    keywords=['gui', 'html', 'javascript', 'desktop', 'pywebview', 'chrome', 'edge'],
+    keywords=[
+        'gui',
+        'html',
+        'javascript',
+        'desktop',
+        'pywebview',
+        'chrome',
+        'edge',
+        'splash',
+    ],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Natural Language :: English',

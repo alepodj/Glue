@@ -87,6 +87,20 @@ def _dismiss_splash(page: str | None = None) -> None:
         session.dismiss()
 
 
+def _resolve_centered(
+    centered: bool | None,
+    splash: bool | str | os.PathLike[str],
+    position: tuple[int, int] | None,
+) -> bool:
+    if centered is not None and not isinstance(centered, bool):
+        raise TypeError("'centered' must be True, False, or None")
+    if centered is None:
+        return splash is not False and position is None
+    if centered and position is not None:
+        raise ValueError("'centered=True' cannot be combined with 'position'")
+    return centered
+
+
 atexit.register(_close_splash)
 
 
@@ -263,6 +277,7 @@ def start(
     cmdline_args: list[str] | None = None,
     size: tuple[int, int] | None = None,
     position: tuple[int, int] | None = None,
+    centered: bool | None = None,
     geometry: dict[str, WindowGeometryT] | None = None,
     close_callback: Callable[..., Any] | None = None,
     app_mode: bool = True,
@@ -342,6 +357,13 @@ def start(
     :param position: Tuple specifying the (left, top) position of the main
         window in pixels. Chrome/Edge use :code:`window.moveTo` in
         :file:`/glue.js`. *Default*: `None` (host chooses, usually centered).
+    :param centered: Explicitly center the main window. Supported by PyWebView,
+        Chrome, and Edge. :code:`None` automatically enables centering when
+        :code:`splash` is enabled; :code:`False` opts out. Per-page
+        :code:`geometry` positions override centering. Explicit :code:`True`
+        cannot be combined with global :code:`position`. On Windows PyWebView
+        this uses the primary work area; Chrome/Edge and other platforms use
+        available-screen geometry or host placement. *Default:* :code:`None`.
     :param geometry: Per-page size/position map (page path →
         :code:`{'size': (w, h), 'position': (x, y)}`, either key optional).
         Applied on PyWebView and via :file:`/glue.js` for Chrome/Edge.
@@ -421,6 +443,7 @@ def start(
     """
     global _splash_pages, _splash_session
     splash_min_duration = _splash.validate_min_duration(splash_min_duration)
+    centered = _resolve_centered(centered, splash, position)
     if cmdline_args is None:
         cmdline_args = list(_DEFAULT_CMDLINE_ARGS)
     if geometry is None:
@@ -471,6 +494,7 @@ def start(
             'cmdline_args': cmdline_args,
             'size': size,
             'position': position,
+            'centered': centered,
             'geometry': geometry,
             'title': title,
             'resizable': resizable,
@@ -794,7 +818,11 @@ def _glue() -> str:
     import glue.webview as webview
 
     start_geometry = {
-        'default': {'size': _start_args['size'], 'position': _start_args['position']},
+        'default': {
+            'size': _start_args['size'],
+            'position': _start_args['position'],
+            'centered': _start_args.get('centered', False),
+        },
         'pages': _start_args['geometry'],
     }
 

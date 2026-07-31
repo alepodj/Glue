@@ -40,6 +40,7 @@ def resolve_splash_path(
 
     if splash is False:
         return None
+    candidates: tuple[Path, ...]
     if splash is True:
         candidates = (
             ui_path / 'splash.png',

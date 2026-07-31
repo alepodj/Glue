@@ -1,33 +1,43 @@
-# Splash API
+# 11 - Splash
 
-This example uses Glue's optional transparent startup splash:
+A transparent native startup splash that fades into the Glue application.
 
-```python
-glue.start(splash=LOGO_PATH)
-```
+## What it demonstrates
 
-Install the optional dependencies:
+- Auto-discovering `ui/splash.png` with `splash=True`.
+- Waiting for the first painted page and a one-second minimum duration.
+- Automatically centering a splash-enabled application.
+- Starting the splash worker safely on Windows and in frozen applications.
+
+## Files
+
+- `splash.py` — guarded Glue entry point and multiprocessing setup.
+- `ui/index.html` — application shown after the splash.
+- `ui/splash.png` — transparent splash image.
+
+## Install
 
 ```powershell
 python -m pip install ".[splash]"
 ```
 
-Run from the repository root:
+## Run
 
 ```powershell
-python "examples/11 - splash/splash.py"
+cd "examples/11 - splash"
+python splash.py
 ```
 
-The PNG appears in a separate frameless GLFW window with true alpha, then fades
-away after both conditions are met:
+## Key API
 
-1. The initial Glue page has loaded, connected its bridge, and painted.
-2. The default one-second minimum display time has elapsed.
+```python
+glue.init()
+glue.start(splash=True)
+```
 
-`splash=True` automatically searches the UI directory and project root for a
-PNG, APNG, or GIF named `splash`. An explicit relative or absolute image path
-can be passed instead.
+`splash=True` searches the UI directory and project root for `splash.png`,
+`splash.apng`, or `splash.gif`. An explicit relative or absolute image path can
+be passed instead.
 
-Windows multiprocessing requires the guarded entrypoint and `freeze_support()`
-shown in `splash.py`. The worker stays isolated from the application and imports
-neither Glue nor Bottle.
+The guarded entry point and `multiprocessing.freeze_support()` are required by
+the spawned splash renderer on Windows and in PyInstaller applications.

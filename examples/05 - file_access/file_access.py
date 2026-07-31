@@ -1,17 +1,18 @@
 import os
-import sys
 import random
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 import glue
 
 glue.init()
 
+
 @glue.expose
 def pick_file(folder):
+    folder = os.path.expanduser(folder)
     if os.path.isdir(folder):
-        return random.choice(os.listdir(folder))
-    else:
-        return 'Not valid folder'
+        files = [name for name in os.listdir(folder) if os.path.isfile(os.path.join(folder, name))]
+        return random.choice(files) if files else 'The folder contains no files'
+    return 'Not a valid folder'
 
-glue.start('file_access.html')
+
+glue.start()

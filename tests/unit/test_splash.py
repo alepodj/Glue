@@ -67,18 +67,22 @@ class FakeContext:
         return self.process
 
 
-def test_resolve_true_prefers_ui_png_then_ui_gif_then_project(tmp_path):
+def test_resolve_true_prefers_ui_png_then_apng_then_gif_then_project(tmp_path):
     ui = tmp_path / 'ui'
     ui.mkdir()
     project_png = tmp_path / 'splash.png'
     ui_gif = ui / 'splash.gif'
+    ui_apng = ui / 'splash.apng'
     ui_png = ui / 'splash.png'
     project_png.write_bytes(b'project')
     ui_gif.write_bytes(b'gif')
+    ui_apng.write_bytes(b'apng')
     ui_png.write_bytes(b'png')
 
     assert splash.resolve_splash_path(True, ui_root=ui, project_root=tmp_path) == ui_png
     ui_png.unlink()
+    assert splash.resolve_splash_path(True, ui_root=ui, project_root=tmp_path) == ui_apng
+    ui_apng.unlink()
     assert splash.resolve_splash_path(True, ui_root=ui, project_root=tmp_path) == ui_gif
     ui_gif.unlink()
     assert splash.resolve_splash_path(True, ui_root=ui, project_root=tmp_path) == project_png
@@ -206,6 +210,20 @@ def test_page_ready_only_dismisses_for_initial_page(monkeypatch):
     glue._dismiss_splash('other.html')
     glue._dismiss_splash('index.html')
     assert session.dismissed == 1
+
+
+def test_splash_is_skipped_when_mode_is_none(monkeypatch):
+    calls = []
+
+    monkeypatch.setattr(glue._splash, 'start_splash', lambda *a, **k: calls.append((a, k)) or None)
+
+    def stop_before_server(*_args, **_kwargs):
+        raise RuntimeError('stop-before-server')
+
+    monkeypatch.setattr(glue, 'spawn', stop_before_server)
+    with pytest.raises(RuntimeError, match='stop-before-server'):
+        glue.start(mode=None, splash=True, block=False)
+    assert calls == []
 
 
 def test_glue_js_emits_page_ready_event():

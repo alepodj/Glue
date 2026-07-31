@@ -38,6 +38,7 @@ class OptionsDictT(TypedDict, total=False):
     cmdline_args: list[str]
     size: tuple[int, int] | None
     position: tuple[int, int] | None
+    centered: bool
     geometry: dict[str, WindowGeometryT]
     close_callback: Callable[..., Any] | None
     app_mode: bool

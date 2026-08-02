@@ -13,7 +13,6 @@ Not covered here (and why):
 """
 
 import os
-import time
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 
 from selenium import webdriver
@@ -66,12 +65,13 @@ def test_file_access(driver: webdriver.Remote):
         assert driver.title == 'Python file access'
 
         with TemporaryDirectory() as temp_dir, NamedTemporaryFile(dir=temp_dir) as temp_file:
+            expected = os.path.basename(temp_file.name)
             driver.find_element(value='folder').clear()
             driver.find_element(value='folder').send_keys(temp_dir)
-            time.sleep(0.5)
             driver.find_element(By.CSS_SELECTOR, 'button').click()
-
-            assert driver.find_element(value='file-name').text == os.path.basename(temp_file.name)
+            WebDriverWait(driver, 2.0).until(
+                expected_conditions.text_to_be_present_in_element((By.ID, 'file-name'), expected)
+            )
 
 
 def test_input(driver: webdriver.Remote):

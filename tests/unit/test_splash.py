@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 import glue
+import glue._splash_worker as splash_worker
 import glue.splash as splash
 
 
@@ -65,6 +66,39 @@ class FakeContext:
     def Process(self, **kwargs):
         self.process.commands = self.parent.sent
         return self.process
+
+
+@pytest.mark.parametrize(
+    ('width', 'height', 'expected'),
+    [
+        (320, 240, (320, 240)),
+        (500, 500, (500, 500)),
+        (1000, 500, (1000, 500)),
+        (1000, 1000, (500, 500)),
+        (1920, 1080, (889, 500)),
+        (1, 2000, (1, 500)),
+    ],
+)
+def test_fit_splash_size_caps_height_and_preserves_aspect(width, height, expected):
+    assert splash_worker._fit_splash_size(width, height) == expected
+
+
+def test_fit_splash_size_rejects_non_positive_dimensions():
+    with pytest.raises(ValueError, match='positive'):
+        splash_worker._fit_splash_size(0, 100)
+    with pytest.raises(ValueError, match='positive'):
+        splash_worker._fit_splash_size(100, -1)
+
+
+def test_load_frames_shrinks_oversized_images(tmp_path):
+    Image = pytest.importorskip('PIL.Image')
+    path = tmp_path / 'splash.png'
+    Image.new('RGBA', (1200, 900), (10, 20, 30, 255)).save(path)
+
+    frames, size = splash_worker._load_frames(str(path))
+    assert size == (667, 500)
+    assert len(frames) == 1
+    assert len(frames[0][0]) == 667 * 500 * 4
 
 
 def test_resolve_true_prefers_ui_png_then_apng_then_gif_then_project(tmp_path):

@@ -31,6 +31,24 @@ GL_TEXTURE_MIN_FILTER = 0x2801
 GL_UNPACK_ALIGNMENT = 0x0CF5
 GL_UNSIGNED_BYTE = 0x1401
 
+# Hard cap for splash window height. Larger images are scaled down in place.
+MAX_SPLASH_HEIGHT = 500
+
+
+def _fit_splash_size(
+    width: int,
+    height: int,
+    *,
+    max_height: int = MAX_SPLASH_HEIGHT,
+) -> tuple[int, int]:
+    """Return splash display size, shrinking oversized images by aspect ratio."""
+    if width <= 0 or height <= 0:
+        raise ValueError('Splash image dimensions must be positive')
+    if height <= max_height:
+        return width, height
+    scale = max_height / float(height)
+    return max(1, round(width * scale)), max_height
+
 
 def _gl_function(glfw: Any, name: str, result_type: Any, *argument_types: Any) -> Any:
     address = glfw.get_proc_address(name)
@@ -93,15 +111,23 @@ def _load_frames(image_path: str) -> tuple[list[tuple[bytes, float]], tuple[int,
     """Decode PNG/GIF frames into complete RGBA canvases."""
     from PIL import Image  # type: ignore[import-not-found]
 
+    try:
+        resample = Image.Resampling.LANCZOS
+    except AttributeError:  # Pillow < 9
+        resample = Image.LANCZOS
+
     frames: list[tuple[bytes, float]] = []
     with Image.open(Path(image_path)) as image:
-        size = image.size
+        source_size = image.size
+        display_size = _fit_splash_size(*source_size)
         frame_count = int(getattr(image, 'n_frames', 1))
         for index in range(frame_count):
             image.seek(index)
-            if image.size != size:
+            if image.size != source_size:
                 raise ValueError('All splash animation frames must use the same dimensions')
             frame = image.convert('RGBA')
+            if display_size != source_size:
+                frame = frame.resize(display_size, resample)
             duration_ms = frame.info.get('duration', image.info.get('duration', 100))
             try:
                 duration = float(duration_ms) / 1000.0
@@ -113,7 +139,7 @@ def _load_frames(image_path: str) -> tuple[list[tuple[bytes, float]], tuple[int,
             frames.append((frame.tobytes(), max(0.02, duration)))
     if not frames:
         raise ValueError('Splash image contains no frames')
-    return frames, size
+    return frames, display_size
 
 
 def _create_texture(gl: dict[str, Any], pixels: bytes, size: tuple[int, int]) -> ctypes.c_uint:

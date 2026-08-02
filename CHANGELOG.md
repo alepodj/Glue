@@ -2,7 +2,7 @@
 
 ### 0.6.7
 
-* Optional cross-platform transparent startup splash via ``glue.start(splash=True)`` or an explicit PNG/APNG/GIF path. GLFW renders in an isolated process, animations are supported, and the splash fades after the first page paints plus a configurable one-second minimum.
+* Optional cross-platform transparent startup splash via ``glue.start(splash=True)`` or an explicit PNG/APNG/GIF path. GLFW renders in an isolated process, animations are supported, and the splash fades after the first page paints plus a configurable one-second minimum. Images taller than 500px are scaled down with aspect ratio preserved.
 * Add the ``glue-ui[splash]`` extra (GLFW + Pillow); applications not using splashes gain no dependencies or startup cost.
 * Add example ``11 - splash`` and automatic page-ready signaling over the Glue bridge.
 * Add work-area centering for PyWebView, Chrome, and Edge. ``centered=True`` enables it explicitly; splash-enabled apps center automatically unless opted out with ``centered=False`` or given an explicit position.

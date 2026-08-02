@@ -37,7 +37,8 @@ glue.start(splash=True)
 
 `splash=True` searches the UI directory and project root for `splash.png`,
 `splash.apng`, or `splash.gif`. An explicit relative or absolute image path can
-be passed instead.
+be passed instead. Images taller than 500px are scaled down automatically while
+preserving aspect ratio.
 
 The guarded entry point and `multiprocessing.freeze_support()` are required by
 the spawned splash renderer on Windows and in PyInstaller applications.

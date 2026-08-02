@@ -326,13 +326,14 @@ if __name__ == '__main__':
 ```
 
 Glue renders the image in an independent, frameless GLFW window with transparent
-pixels. It fades after the initial page loads, connects, and paints, while
-honoring the minimum duration. The main app centers automatically when a splash
-is enabled; pass `centered=False` or `position=(x, y)` to override it. The
-guarded entrypoint is required by Windows
-multiprocessing and works with frozen applications. Missing optional
-dependencies or unavailable compositor transparency disable only the splash;
-the main app continues starting.
+pixels. Images taller than 500px are scaled down to that height while preserving
+aspect ratio; this limit is fixed and not configurable. The splash fades after
+the initial page loads, connects, and paints, while honoring the minimum
+duration. The main app centers automatically when a splash is enabled; pass
+`centered=False` or `position=(x, y)` to override it. The guarded entrypoint is
+required by Windows multiprocessing and works with frozen applications. Missing
+optional dependencies or unavailable compositor transparency disable only the
+splash; the main app continues starting.
 
 ---
 
